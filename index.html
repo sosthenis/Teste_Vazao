@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste de vazão – 2ª linha dos sifões, Lote 4 (Eixão das Águas)</title>
+<style>
+:root{
+  --paper:#F3F6F9; --ink:#17232E; --muted:#5B6B7A; --line:#C9D3DC;
+  --water:#1D6FB0; --water2:#8FC3E8; --concrete:#8B949D; --steel:#3F4A55;
+  --warn:#B7791F; --bad:#B23A2E; --ok:#2C7A4B; --new:#C63D2F; --old:#1D6FB0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{background:#fff;border-bottom:2px solid var(--ink);padding:18px 28px}
+header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
+header p{margin:4px 0 0;color:var(--muted);font-size:14px}
+nav{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--line);padding:0 28px;overflow-x:auto}
+nav button{border:0;background:none;padding:12px 16px;font:inherit;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--water)}
+nav button:focus-visible{outline:2px solid var(--water);outline-offset:-2px}
+main{padding:24px 28px 60px;max-width:1240px;margin:0 auto}
+section[hidden]{display:none}
+h2{font-size:18px;font-weight:600;margin:0 0 6px}
+.lead{color:var(--muted);max-width:70ch;margin:0 0 18px}
+.grid{display:grid;gap:22px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:2fr 1fr}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.panel{background:#fff;border:1px solid var(--line);padding:18px 20px}
+.panel h3{margin:0 0 12px;font-size:15px;font-weight:600}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:2px}
+input[type=number],input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px;color:var(--ink)}
+input:focus-visible,select:focus-visible{outline:2px solid var(--water);outline-offset:0}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:13px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-variant-numeric:tabular-nums}
+.kv div:nth-child(even){text-align:right;font-weight:600}
+.verdict{padding:12px 14px;font-weight:600;border-left:5px solid var(--muted);background:#F7F9FB;margin-top:12px}
+.verdict.ok{border-color:var(--ok);color:var(--ok)}
+.verdict.bad{border-color:var(--bad);color:var(--bad)}
+.verdict.warn{border-color:var(--warn);color:var(--warn)}
+.btn{border:1px solid var(--ink);background:#fff;padding:8px 14px;font:inherit;cursor:pointer;color:var(--ink)}
+.btn.primary{background:var(--ink);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.btn:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{padding:9px 10px 9px 40px;border-bottom:1px solid var(--line);position:relative;cursor:pointer;color:var(--muted)}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:10px;top:9px;width:22px;height:22px;border:1px solid var(--line);border-radius:50%;text-align:center;font-size:12px;line-height:20px;color:var(--muted);background:#fff}
+.steps li.on{color:var(--ink);background:#EEF4FA}
+.steps li.on::before{background:var(--ink);color:#fff;border-color:var(--ink)}
+.steps li.done::before{border-color:var(--ok);color:var(--ok)}
+.steps li small{display:block;font-size:12px;color:var(--muted)}
+.steps li.gap{border-left:3px solid var(--warn)}
+.stepnote{margin-top:14px;padding:12px 14px;background:#FBF7EC;border-left:4px solid var(--warn);font-size:14px}
+.stepnote.plain{background:#F7F9FB;border-color:var(--water)}
+/* schematic */
+.flow{stroke-dasharray:14 10;animation:dash 1.2s linear infinite}
+.flow.slow{animation-duration:2.4s}
+.flow.off{animation:none;stroke-dasharray:none;opacity:.25}
+@keyframes dash{to{stroke-dashoffset:-24}}
+@media(prefers-reduced-motion:reduce){.flow{animation:none}}
+.gauge{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
+.gauge div{flex:1;min-width:160px}
+.bar{height:14px;background:#E6ECF1;position:relative;border:1px solid var(--line)}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--water)}
+.bar b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad)}
+.small{font-size:13px;color:var(--muted)}
+.ressalva{border-bottom:1px solid var(--line);padding:12px 0}
+.ressalva strong{display:block}
+canvas{width:100%;height:220px;display:block;border:1px solid var(--line);background:#fff}
+.clock{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.tolbar{position:relative;height:38px;margin:10px 0 4px}
+.tolbar span{position:absolute;top:0;height:14px;font-size:12px}
+.tolbar .band5{background:#F3E7C9}.tolbar .band2{background:#DCEBF7}
+.tolbar .pt{position:absolute;top:0;width:2px;height:22px;background:var(--bad)}
+.tolbar .tick{position:absolute;top:20px;font-size:11px;color:var(--muted);transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Teste de vazão da 2ª linha dos sifões – Lote 4, Eixão das Águas</h1>
+  <p>Simulação do procedimento, verificação hidráulica e registro de aceite. Referência: Nota Técnica CCEA/Tri-Stars, ago/2026, rev. 00. Valores editáveis; parâmetros dos sifões são ilustrativos até o consórcio informar L e ΔH de projeto.</p>
+</header>
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-t="a">Como o teste ocorre</button>
+  <button role="tab" data-t="b">Canal (Manning)</button>
+  <button role="tab" data-t="c">Sifão (perda de carga)</button>
+  <button role="tab" data-t="d">Registro e aceite</button>
+  <button role="tab" data-t="e">Ressalvas à Nota</button>
+</nav>
+<main>
+
+<!-- ================= A ================= -->
+<section id="tab-a">
+  <h2>Sequência do teste em um sifão</h2>
+  <p class="lead">Planta esquemática de um dos seis sifões: canal de montante, caixa de entrada com comportas, duas tubulações DN 2500 (1ª e 2ª etapa), caixa de saída com stop-logs e canal de jusante. Percorra as etapas; os passos marcados em âmbar não constam da Nota e foram acrescentados.</p>
+  <div class="grid g3">
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 900 330" width="100%" role="img" aria-label="Planta esquemática do sifão">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1D6FB0"/></marker>
+        </defs>
+        <!-- canal montante -->
+        <path d="M0 95 L230 125 L230 215 L0 245 Z" fill="#DDEBF6" stroke="#8B949D"/>
+        <path d="M0 122 L230 145 L230 195 L0 218 Z" fill="#B9D9F0" opacity=".7"/>
+        <text x="12" y="88" font-size="12" fill="#5B6B7A">Canal de montante</text>
+        <!-- canal jusante -->
+        <path d="M670 125 L900 95 L900 245 L670 215 Z" fill="#DDEBF6" stroke="#8B949D"/>
+        <path d="M670 145 L900 122 L900 218 L670 195 Z" fill="#B9D9F0" opacity=".7"/>
+        <text x="760" y="88" font-size="12" fill="#5B6B7A">Canal de jusante</text>
+        <!-- caixas -->
+        <rect x="230" y="110" width="90" height="120" fill="#EDEFF2" stroke="#3F4A55"/>
+        <text x="236" y="252" font-size="11" fill="#5B6B7A">Caixa de entrada</text>
+        <rect x="580" y="110" width="90" height="120" fill="#EDEFF2" stroke="#3F4A55"/>
+        <text x="590" y="252" font-size="11" fill="#5B6B7A">Caixa de saída</text>
+        <!-- tubos -->
+        <rect x="320" y="132" width="260" height="26" fill="#fff" stroke="#1D6FB0" stroke-width="2"/>
+        <rect x="320" y="182" width="260" height="26" fill="#fff" stroke="#C63D2F" stroke-width="2"/>
+        <rect id="fill2" x="320" y="182" width="0" height="26" fill="#F5D0CB"/>
+        <text x="330" y="126" font-size="12" fill="#1D6FB0">Tubo 1ª etapa – DN 2500 – linha existente</text>
+        <text x="330" y="226" font-size="12" fill="#C63D2F">Tubo 2ª etapa – DN 2500 – linha em teste</text>
+        <!-- fluxos -->
+        <line id="fm" class="flow" x1="20" y1="170" x2="215" y2="170" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
+        <line id="f1" class="flow" x1="330" y1="145" x2="565" y2="145" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
+        <line id="f2" class="flow" x1="330" y1="195" x2="565" y2="195" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
+        <line id="fj" class="flow" x1="685" y1="170" x2="880" y2="170" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
+        <!-- comportas montante -->
+        <rect id="c1" x="300" y="128" width="8" height="34" fill="#fff" stroke="#3F4A55"/>
+        <rect id="c2" x="300" y="178" width="8" height="34" fill="#fff" stroke="#3F4A55"/>
+        <text x="240" y="128" font-size="10" fill="#3F4A55">Comporta 1</text>
+        <text x="240" y="178" font-size="10" fill="#3F4A55">Comporta 2</text>
+        <!-- stop-logs jusante -->
+        <rect id="s1" x="592" y="128" width="8" height="34" fill="#fff" stroke="#3F4A55"/>
+        <rect id="s2" x="592" y="178" width="8" height="34" fill="#3F4A55" stroke="#3F4A55"/>
+        <text x="606" y="128" font-size="10" fill="#3F4A55">Stop-log 1</text>
+        <text x="606" y="178" font-size="10" fill="#3F4A55">Stop-log 2</text>
+        <!-- ensecadeiras -->
+        <rect id="e1" x="322" y="180" width="10" height="30" fill="#8B5E3C"/>
+        <rect id="e2" x="568" y="180" width="10" height="30" fill="#8B5E3C"/>
+        <!-- seções de medição -->
+        <line x1="110" y1="80" x2="110" y2="262" stroke="#B7791F" stroke-dasharray="5 4"/>
+        <text x="60" y="278" font-size="11" fill="#B7791F">Seção montante (≥ 20 m)</text>
+        <line x1="790" y1="80" x2="790" y2="262" stroke="#B7791F" stroke-dasharray="5 4"/>
+        <text x="735" y="278" font-size="11" fill="#B7791F">Seção jusante (≥ 20 m) – prioritária</text>
+        <g id="adcp" opacity="0">
+          <circle cx="110" cy="170" r="9" fill="#B7791F"/><text x="122" y="174" font-size="11" fill="#B7791F">ADCP</text>
+          <circle cx="790" cy="170" r="9" fill="#B7791F"/><text x="802" y="174" font-size="11" fill="#B7791F">ADCP</text>
+        </g>
+        <!-- réguas -->
+        <g id="reg" opacity="0">
+          <rect x="128" y="120" width="4" height="40" fill="#fff" stroke="#17232E"/><text x="136" y="134" font-size="10">régua</text>
+          <rect x="768" y="120" width="4" height="40" fill="#fff" stroke="#17232E"/><text x="740" y="134" font-size="10">régua</text>
+        </g>
+        <!-- vazões -->
+        <text id="qm" x="20" y="300" font-size="13" font-weight="600" fill="#17232E">Q montante –</text>
+        <text id="q1" x="340" y="300" font-size="13" font-weight="600" fill="#1D6FB0">Q tubo 1 –</text>
+        <text id="q2" x="340" y="318" font-size="13" font-weight="600" fill="#C63D2F">Q tubo 2 –</text>
+        <text id="qj" x="720" y="300" font-size="13" font-weight="600" fill="#17232E">Q jusante –</text>
+        <text id="legEns" x="560" y="318" font-size="11" fill="#8B5E3C">■ ensecadeira de alvenaria</text>
+      </svg>
+      <div class="gauge">
+        <div><label>NA canal de montante (yn + remanso do sifão)</label><div class="bar"><i id="barM"></i><b style="left:77%"></b></div><div class="small" id="txtM"></div></div>
+        <div><label>NA canal de jusante</label><div class="bar"><i id="barJ"></i><b style="left:77%"></b></div><div class="small" id="txtJ"></div></div>
+        <div><label>Enchimento da linha nova</label><div class="bar"><i id="barF" style="background:#C63D2F"></i></div><div class="small" id="txtF"></div></div>
+      </div>
+      <p class="small" style="margin:8px 0 0">Marca vermelha nas barras = NA máximo de operação (2,16 m). Escala 0–2,80 m (altura da obra). O remanso é calculado com os parâmetros do painel “Sifão”.</p>
+      <div id="stepnote" class="stepnote plain"></div>
+    </div>
+    <div class="panel">
+      <h3>Etapas</h3>
+      <ol class="steps" id="steps"></ol>
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="prev">Anterior</button>
+        <button class="btn primary" id="next">Próxima etapa</button>
+        <span class="clock" id="clock" style="margin-left:auto">–</span>
+      </div>
+      <div class="small" id="clocklbl" style="text-align:right"></div>
+      <div style="margin-top:14px" class="fields">
+        <div><label>Q de teste na entrada (m³/s)</label><input type="number" id="aQ" value="9.5" step="0.1"></div>
+        <div><label>Fração para a linha nova ao fechar a antiga</label><input type="number" id="aFr" value="1" step="0.05" min="0" max="1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= B ================= -->
+<section id="tab-b" hidden>
+  <h2>Canal trapezoidal – altura normal por Manning</h2>
+  <p class="lead">Reproduz o Quadro 2 da Nota (b = 5,00 m; taludes 1,5H:1V; S = 0,00015; n = 1/70). Use o modo inverso para converter a leitura da régua em vazão e conferir o ADCP em campo.</p>
+  <div class="grid g2">
+    <div class="panel">
+      <h3>Parâmetros</h3>
+      <div class="fields">
+        <div><label>Largura do fundo b (m)</label><input type="number" id="bb" value="5.00" step="0.1"></div>
+        <div><label>Talude m (H:1V)</label><input type="number" id="bm" value="1.5" step="0.1"></div>
+        <div><label>Declividade S (m/m)</label><input type="number" id="bS" value="0.00015" step="0.00001"></div>
+        <div><label>Manning n</label><input type="number" id="bn" value="0.014286" step="0.0001"></div>
+        <div><label>Altura da obra (m)</label><input type="number" id="bH" value="2.80" step="0.05"></div>
+      </div>
+      <h3 style="margin-top:18px">Direto: vazão → altura normal</h3>
+      <div class="fields"><div><label>Q (m³/s)</label><input type="number" id="bQ" value="9.5" step="0.1"></div></div>
+      <div class="kv" id="bOut" style="margin-top:10px"></div>
+      <h3 style="margin-top:18px">Inverso: leitura de régua → vazão</h3>
+      <div class="fields"><div><label>Lâmina y (m)</label><input type="number" id="by" value="1.49" step="0.01"></div></div>
+      <div class="kv" id="bOut2" style="margin-top:10px"></div>
+    </div>
+    <div class="panel">
+      <h3>Seção transversal</h3>
+      <svg id="sec" viewBox="0 0 600 260" width="100%"></svg>
+      <table style="margin-top:14px">
+        <thead><tr><th>Q (m³/s)</th><th class="num">yn (m)</th><th class="num">T (m)</th><th class="num">A (m²)</th><th class="num">V (m/s)</th><th class="num">Revanche p/ 2,70 (m)</th></tr></thead>
+        <tbody id="bTab"></tbody>
+      </table>
+      <p class="small">Conferência: com os dados da Nota, yn(19,0) = 2,16 m e yn(9,5) = 1,49 m – o Quadro 2 está correto. A observação “2,70 − 0,64” do Quadro 1 é que não fecha (dá 2,06 m; o correto é 2,80 − 0,64).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= C ================= -->
+<section id="tab-c" hidden>
+  <h2>Sifão DN 2500 – perda de carga e remanso</h2>
+  <p class="lead">A Nota não informa comprimento nem ΔH de projeto dos sifões; os valores abaixo são ilustrativos. O que importa: a que nível o canal de montante precisa subir para empurrar 9,5 m³/s pela linha nova, e se isso cabe dentro dos 2,16 m de operação.</p>
+  <div class="grid g2">
+    <div class="panel">
+      <h3>Parâmetros do sifão</h3>
+      <div class="fields">
+        <div><label>Comprimento L (m)</label><input type="number" id="cL" value="600" step="10"></div>
+        <div><label>Diâmetro interno D (m)</label><input type="number" id="cD" value="2.5" step="0.01"></div>
+        <div><label>Rugosidade ε (mm) – aço revestido</label><input type="number" id="cE" value="0.1" step="0.01"></div>
+        <div><label>ΣK perdas localizadas</label><input type="number" id="cK" value="1.8" step="0.1"></div>
+        <div><label>Desnível fundo montante − jusante ΔZ (m)</label><input type="number" id="cZ" value="0.10" step="0.01"></div>
+        <div><label>Q pela linha nova (m³/s)</label><input type="number" id="cQ" value="9.5" step="0.1"></div>
+        <div><label>NA máx. de operação (m)</label><input type="number" id="cNA" value="2.16" step="0.01"></div>
+        <div><label>Temperatura da água (°C)</label><input type="number" id="cT" value="27" step="1"></div>
+      </div>
+      <div class="kv" id="cOut" style="margin-top:14px"></div>
+      <div id="cVer" class="verdict"></div>
+      <h3 style="margin-top:18px">Enchimento da linha nova</h3>
+      <div class="fields">
+        <div><label>Vazão de enchimento (m³/s)</label><input type="number" id="cQf" value="0.5" step="0.05"></div>
+      </div>
+      <div class="kv" id="cFill" style="margin-top:10px"></div>
+      <p class="small">Enchimento lento com ventosas abertas; purga de ar antes de qualquer manobra de comporta. A Nota não trata desta fase.</p>
+    </div>
+    <div class="panel">
+      <h3>Curva Q × NA de montante necessário</h3>
+      <canvas id="cv" width="800" height="360"></canvas>
+      <p class="small">Linha vermelha: NA máximo de operação. O ponto marca a vazão de teste. NA jusante assumido igual à altura normal do canal para a mesma Q (painel Canal).</p>
+      <h3 style="margin-top:18px">Cenário “linha nova estrangulada”</h3>
+      <div class="fields">
+        <div><label>Capacidade real da linha nova (m³/s)</label><input type="number" id="cCap" value="8.0" step="0.1"></div>
+        <div><label>Comprimento de canal a montante que remansa (m)</label><input type="number" id="cLc" value="3000" step="100"></div>
+      </div>
+      <div class="kv" id="cRem" style="margin-top:10px"></div>
+      <p class="small">Estimativa grosseira de quanto tempo o canal leva para subir de yn até a soleira da descarga de segurança (NA máx + 0,10 m) quando a linha nova aceita menos que a vazão afluente. Serve para dimensionar o critério de abortar o teste.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= D ================= -->
+<section id="tab-d" hidden>
+  <h2>Registro de medições e critério de aceite</h2>
+  <p class="lead">Lance as travessias ADCP. O aceite exige, além de Q ≥ 9,5 m³/s, um número mínimo de travessias recíprocas, dispersão aceitável e nível de montante dentro do operacional – condições que a Nota não fixa.</p>
+  <div class="grid g2">
+    <div class="panel">
+      <h3>Vazão de controle na saída do Curral Velho</h3>
+      <div class="fields">
+        <div><label>Q alvo na entrada do sifão (m³/s)</label><input type="number" id="dQ" value="9.5" step="0.1"></div>
+        <div><label>Tomadas intermediárias Σ (m³/s)</label><input type="number" id="dTom" value="0.55" step="0.05"></div>
+        <div><label>Q medida no ponto de controle (m³/s)</label><input type="number" id="dQc" value="10.05" step="0.05"></div>
+      </div>
+      <div class="kv" id="dCtl" style="margin-top:10px"></div>
+      <div class="tolbar" id="tol"></div>
+      <div class="small">Faixa azul ±2 % (190 l/s), faixa âmbar ±5 %. A incerteza típica do ADCP em canal revestido é 3–5 %; por isso a recomendação de operar no limite superior (≈10,0 m³/s na entrada).</div>
+    </div>
+    <div class="panel">
+      <h3>Condições no canal durante o isolamento</h3>
+      <div class="fields">
+        <div><label>Régua montante – NA (m)</label><input type="number" id="dNAm" value="1.62" step="0.01"></div>
+        <div><label>Régua jusante – NA (m)</label><input type="number" id="dNAj" value="1.49" step="0.01"></div>
+        <div><label>NA máx. de operação (m)</label><input type="number" id="dNAmax" value="2.16" step="0.01"></div>
+        <div><label>Tempo com linha antiga fechada (min)</label><input type="number" id="dT" value="120" step="5"></div>
+        <div><label>Estanqueidade da linha antiga verificada?</label><select id="dEst"><option value="1">Sim</option><option value="0">Não</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:22px">
+    <h3>Travessias ADCP</h3>
+    <table>
+      <thead><tr><th>#</th><th>Seção</th><th>Sentido</th><th class="num">Duração (s)</th><th class="num">Q (m³/s)</th><th></th></tr></thead>
+      <tbody id="dRows"></tbody>
+    </table>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn" id="dAdd">Adicionar travessia</button>
+      <button class="btn" id="dDemo">Preencher exemplo</button>
+      <button class="btn" id="dClr">Limpar</button>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div><h3>Seção de jusante (prioritária)</h3><div class="kv" id="dJus"></div></div>
+      <div><h3>Seção de montante</h3><div class="kv" id="dMon"></div></div>
+    </div>
+    <h3 style="margin-top:18px">Verificação do aceite</h3>
+    <table><tbody id="dChk"></tbody></table>
+    <div id="dVer" class="verdict"></div>
+  </div>
+</section>
+
+<!-- ================= E ================= -->
+<section id="tab-e" hidden>
+  <h2>Ressalvas à Nota Técnica rev. 00</h2>
+  <p class="lead">Pontos a levar ao ofício de resposta da COGERH/GEOPE. Erros de digitação primeiro, método depois.</p>
+  <div class="grid g2">
+    <div class="panel">
+      <div class="ressalva"><strong>Quadro 1 – altura máxima de água</strong>“2,70 − 0,64” resulta 2,06 m, não 2,16 m. Corrigir para 2,80 − 0,64 (ou 2,70 − 0,54).</div>
+      <div class="ressalva"><strong>Seção 2 – estado das tubulações</strong>Diz que estão “com água” e “aguardando enchimento”. Definir o estado real; o procedimento de enchimento e purga depende disso.</div>
+      <div class="ressalva"><strong>Seção 5 – texto truncado</strong>O parágrafo da tolerância está incompleto; a regra de ±2 % / ±5 % fica ambígua.</div>
+      <div class="ressalva"><strong>Ponto de controle</strong>Calibrar no fim do Trecho 1 não define a vazão do Trecho 2: o Curral Velho é reservatório de passagem. O controle deve ser na saída do Curral Velho.</div>
+      <div class="ressalva"><strong>Etapas ausentes no Quadro 4</strong>Remoção das ensecadeiras; enchimento lento e purga de ar da linha nova; verificação de estanqueidade da linha antiga fechada (vazamento por stop-log contamina a medição de jusante); reabertura e retorno à operação normal.</div>
+    </div>
+    <div class="panel">
+      <div class="ressalva"><strong>Critério de aceite incompleto</strong>“Q ≥ 9,5 m³/s” é necessário, não suficiente: qualquer sifão conduz 9,5 se o canal de montante subir o bastante. Acrescentar NA montante ≤ nível operacional (ou ΔH ≤ ΔH de projeto) e informar L e ΔH de projeto de cada sifão.</div>
+      <div class="ressalva"><strong>Tolerância × incerteza</strong>Exigir ±2 % no ajuste e medir com instrumento de 3–5 % é inconsistente. Operar em ≈10,0 m³/s na entrada garante que a comprovação de ≥ 9,5 sobreviva à incerteza.</div>
+      <div class="ressalva"><strong>Descarga de segurança</strong>Só opera com NA &gt; 2,26 m. Entre 1,49 e 2,26 m há 0,77 m de remanso sem proteção e sem critério de abortar. Fixar NA limite e taxa de subida máxima.</div>
+      <div class="ressalva"><strong>Protocolo ADCP</strong>Não define nº de travessias (mínimo 4, recíprocas, ≥ 720 s no total), critério de descarte (CV &gt; 5 %) nem referência (bottom track em fundo de concreto vs. RTK).</div>
+      <div class="ressalva"><strong>O que a COGERH precisa saber</strong>Duração do teste, volume total (10 m³/s por dia ≈ 864 000 m³), destino a jusante, janela de estabilização do sistema após ajuste no Curral Velho e compensação das tomadas sifão a sifão.</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const num=id=>parseFloat($(id).value)||0;
+const f2=(x,d=2)=>x.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  ['a','b','c','d','e'].forEach(t=>$('tab-'+t).hidden=t!==b.dataset.t);
+}));
+
+/* ---------- hydraulics ---------- */
+function manning(b,m,S,n,y){const A=(b+m*y)*y,P=b+2*y*Math.sqrt(1+m*m),R=A/P;return{A,P,R,T:b+2*m*y,Q:A*Math.pow(R,2/3)*Math.sqrt(S)/n};}
+function yn(Q,b,m,S,n){let lo=0.001,hi=15;for(let i=0;i<60;i++){const mid=(lo+hi)/2;(manning(b,m,S,n,mid).Q<Q)?lo=mid:hi=mid;}return (lo+hi)/2;}
+function canalParams(){return{b:num('bb'),m:num('bm'),S:num('bS'),n:num('bn'),H:num('bH')};}
+function nu(T){return 1.792e-6/(1+0.0337*T+0.000221*T*T);}
+function swamee(Re,eD){return 0.25/Math.pow(Math.log10(eD/3.7+5.74/Math.pow(Re,0.9)),2);}
+function sifao(Q){
+  const L=num('cL'),D=num('cD'),e=num('cE')/1000,K=num('cK'),dZ=num('cZ'),T=num('cT');
+  const A=Math.PI*D*D/4,V=Q/A,Re=V*D/nu(T),f=swamee(Re,e/D),hv=V*V/19.62;
+  const hf=f*L/D*hv,hl=K*hv,dH=hf+hl;
+  const c=canalParams(),yj=yn(Q,c.b,c.m,c.S,c.n),NAm=yj+dH-dZ;
+  return{A,V,Re,f,hv,hf,hl,dH,yj,NAm};
+}
+
+/* ---------- B ---------- */
+function calcB(){
+  const c=canalParams();
+  const Q=num('bQ'),y=yn(Q,c.b,c.m,c.S,c.n),r=manning(c.b,c.m,c.S,c.n,y);
+  $('bOut').innerHTML=`<div>Altura normal yn</div><div>${f2(y)} m</div><div>Largura superficial T</div><div>${f2(r.T)} m</div><div>Área molhada A</div><div>${f2(r.A)} m²</div><div>Raio hidráulico R</div><div>${f2(r.R,3)} m</div><div>Velocidade média</div><div>${f2(Q/r.A)} m/s</div><div>Froude</div><div>${f2(Q/r.A/Math.sqrt(9.81*r.A/r.T),3)}</div>`;
+  const y2=num('by'),r2=manning(c.b,c.m,c.S,c.n,y2);
+  $('bOut2').innerHTML=`<div>Q estimada</div><div>${f2(r2.Q)} m³/s</div><div>Área</div><div>${f2(r2.A)} m²</div><div>Velocidade</div><div>${f2(r2.Q/r2.A)} m/s</div><div>± 5 % (incerteza de n)</div><div>${f2(r2.Q*0.95)} – ${f2(r2.Q*1.05)}</div>`;
+  $('bTab').innerHTML=[19,15,12,10,9.5,9].map(q=>{const yy=yn(q,c.b,c.m,c.S,c.n),rr=manning(c.b,c.m,c.S,c.n,yy);return`<tr><td>${f2(q,1)}</td><td class="num">${f2(yy)}</td><td class="num">${f2(rr.T)}</td><td class="num">${f2(rr.A)}</td><td class="num">${f2(q/rr.A)}</td><td class="num">${f2(2.70-yy)}</td></tr>`;}).join('');
+  drawSec(c,y);
+}
+function drawSec(c,y){
+  const W=600,Hc=260,pad=30,top=c.H,scale=Math.min((W-2*pad)/(c.b+2*c.m*top),(Hc-70)/top);
+  const x0=W/2-(c.b/2+c.m*top)*scale,y0=Hc-40;
+  const pt=(x,yy)=>`${x0+x*scale},${y0-yy*scale}`;
+  const poly=`${pt(0,top)} ${pt(c.m*top,0)} ${pt(c.m*top+c.b,0)} ${pt(2*c.m*top+c.b,top)}`;
+  const wl=`${pt(c.m*(top-y),y)} ${pt(c.m*top,0)} ${pt(c.m*top+c.b,0)} ${pt(c.m*top+c.b+c.m*y,y)}`;
+  const na=(c.H-0.10-0.54);
+  $('sec').innerHTML=`<polygon points="${wl}" fill="#8FC3E8"/><polyline points="${poly}" fill="none" stroke="#3F4A55" stroke-width="3"/>
+  <line x1="${x0}" y1="${y0-na*scale}" x2="${x0+(c.b+2*c.m*top)*scale}" y2="${y0-na*scale}" stroke="#B23A2E" stroke-dasharray="6 4"/>
+  <text x="${x0+4}" y="${y0-na*scale-4}" font-size="11" fill="#B23A2E">NA máx 2,16 m</text>
+  <text x="${W/2}" y="${y0-y*scale-6}" font-size="12" text-anchor="middle" fill="#17232E">y = ${f2(y)} m</text>
+  <text x="${W/2}" y="${y0+18}" font-size="11" text-anchor="middle" fill="#5B6B7A">b = ${f2(c.b)} m · taludes ${c.m}H:1V · topo ${f2(c.b+2*c.m*top)} m</text>`;
+}
+['bb','bm','bS','bn','bH','bQ','by'].forEach(id=>$(id).addEventListener('input',()=>{calcB();calcC();stepRender();}));
+
+/* ---------- C ---------- */
+function calcC(){
+  const Q=num('cQ'),s=sifao(Q),NAmax=num('cNA');
+  $('cOut').innerHTML=`<div>Velocidade no tubo</div><div>${f2(s.V)} m/s</div><div>Reynolds</div><div>${(s.Re/1e6).toFixed(2)} × 10⁶</div><div>f (Swamee-Jain)</div><div>${s.f.toFixed(4)}</div><div>Perda distribuída</div><div>${f2(s.hf,3)} m</div><div>Perdas localizadas</div><div>${f2(s.hl,3)} m</div><div>ΔH total</div><div>${f2(s.dH,3)} m</div><div>NA jusante (yn do canal)</div><div>${f2(s.yj)} m</div><div>NA montante necessário</div><div>${f2(s.NAm)} m</div><div>Folga até NA máx.</div><div>${f2(NAmax-s.NAm)} m</div>`;
+  const v=$('cVer');
+  if(s.NAm>NAmax+0.10){v.className='verdict bad';v.textContent='Com estes parâmetros a linha nova só passa '+f2(Q,1)+' m³/s com o canal acima da descarga de segurança. Teste inviável – rever premissas ou a vazão.';}
+  else if(s.NAm>NAmax){v.className='verdict warn';v.textContent='NA de montante ultrapassa o operacional (2,16 m). Passa vazão, mas fora do critério recomendado.';}
+  else{v.className='verdict ok';v.textContent='Linha nova conduz '+f2(Q,1)+' m³/s com NA de montante dentro do operacional.';}
+  const vol=s.A*num('cL'),Qf=num('cQf');
+  $('cFill').innerHTML=`<div>Volume da linha</div><div>${f2(vol,0)} m³</div><div>Tempo de enchimento</div><div>${f2(vol/Qf/3600,1)} h</div><div>Velocidade de enchimento</div><div>${f2(Qf/s.A,3)} m/s</div>`;
+  drawCurve(NAmax);
+  const cap=num('cCap'),Qin=Q,Lc=num('cLc'),c=canalParams();
+  if(cap<Qin){const y1=yn(Qin,c.b,c.m,c.S,c.n),y2=NAmax+0.10,A1=manning(c.b,c.m,c.S,c.n,y1).A,A2=manning(c.b,c.m,c.S,c.n,y2).A,dV=(A2-A1)*Lc,t=dV/(Qin-cap);
+    $('cRem').innerHTML=`<div>Excesso a armazenar</div><div>${f2(Qin-cap)} m³/s</div><div>Volume até verter</div><div>${f2(dV,0)} m³</div><div>Tempo até a descarga de segurança</div><div>${f2(t/60,0)} min</div><div>Taxa média de subida</div><div>${f2((y2-y1)*100/(t/60),1)} cm/min</div>`;}
+  else $('cRem').innerHTML='<div>Capacidade ≥ vazão afluente</div><div>sem remanso</div>';
+}
+function drawCurve(NAmax){
+  const cv=$('cv'),g=cv.getContext('2d'),W=cv.width,H=cv.height,p={l:60,r:20,t:20,b:40};
+  g.clearRect(0,0,W,H);
+  const qs=[],ys=[];for(let q=2;q<=14;q+=0.25){qs.push(q);ys.push(sifao(q).NAm);}
+  const ymax=Math.max(2.8,...ys)*1.05,x=q=>p.l+(q-2)/12*(W-p.l-p.r),y=v=>H-p.b-v/ymax*(H-p.t-p.b);
+  g.strokeStyle='#C9D3DC';g.lineWidth=1;g.font='12px system-ui';g.fillStyle='#5B6B7A';
+  for(let v=0;v<=ymax;v+=0.5){g.beginPath();g.moveTo(p.l,y(v));g.lineTo(W-p.r,y(v));g.stroke();g.fillText(v.toFixed(1)+' m',8,y(v)+4);}
+  for(let q=2;q<=14;q+=2){g.fillText(q+' m³/s',x(q)-18,H-14);}
+  g.strokeStyle='#B23A2E';g.setLineDash([6,4]);g.beginPath();g.moveTo(p.l,y(NAmax));g.lineTo(W-p.r,y(NAmax));g.stroke();g.setLineDash([]);
+  g.strokeStyle='#1D6FB0';g.lineWidth=2.5;g.beginPath();qs.forEach((q,i)=>i?g.lineTo(x(q),y(ys[i])):g.moveTo(x(q),y(ys[i])));g.stroke();
+  const Q=num('cQ'),s=sifao(Q);g.fillStyle='#C63D2F';g.beginPath();g.arc(x(Q),y(s.NAm),6,0,7);g.fill();
+  g.fillStyle='#17232E';g.fillText(`${f2(Q,1)} m³/s → NA ${f2(s.NAm)} m`,x(Q)+10,y(s.NAm)-8);
+}
+['cL','cD','cE','cK','cZ','cQ','cNA','cT','cQf','cCap','cLc'].forEach(id=>$(id).addEventListener('input',()=>{calcC();stepRender();}));
+
+/* ---------- A : steps ---------- */
+const STEPS=[
+ {t:'Preparar seções de medição e instalar réguas',s:'≥ 20 m das caixas; deslocar se houver turbulência.',st:{c1:1,c2:0,s1:1,s2:0,ens:1,fill:0,split:0,adcp:0,reg:1,note:'Situação de partida: linha existente em operação, linha nova isolada por ensecadeiras. Réguas a ≥ 20 m das caixas, montante e jusante.'}},
+ {t:'Remover ensecadeiras e encher a linha nova',s:'Não consta da Nota. Enchimento lento, ventosas abertas.',gap:1,st:{c1:1,c2:0,s1:1,s2:0,ens:0,fill:1,split:0,adcp:0,reg:1,note:'Etapa ausente na Nota. A linha nova (DN 2500) precisa ser enchida com vazão controlada e ter o ar purgado antes de qualquer manobra. Ver tempo estimado no painel “Sifão”.'}},
+ {t:'Estabilizar a vazão de teste na entrada do sifão',s:'Q = 9,5 m³/s + Σ tomadas, controlada na saída do Curral Velho.',st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:0,reg:1,note:'Duas linhas abertas, cada uma com cerca de metade da vazão. O ajuste é feito no ponto de controle da COGERH e leva horas para se propagar e estabilizar ao longo do canal.'}},
+ {t:'Medições de verificação (ADCP)',s:'Montante e jusante; confirmar vazão constante.',st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:1,reg:1,note:'Travessias recíprocas nas duas seções. A diferença montante − jusante já revela tomadas não compensadas ou vazamentos.'}},
+ {t:'Fechar comporta de montante da linha antiga',s:'Manobra gradual; a vazão migra para a linha nova.',st:{c1:0,c2:1,s1:1,s2:1,ens:0,fill:1,split:1,adcp:0,reg:1,note:'Fechamento lento da Comporta 1. A partir daqui a linha nova recebe toda a vazão afluente; observar as réguas de montante durante a manobra.'}},
+ {t:'Fechar stop-log de jusante e verificar estanqueidade da linha antiga',s:'Não consta da Nota: vazamento pelo stop-log contamina a medição.',gap:1,st:{c1:0,c2:1,s1:0,s2:1,ens:0,fill:1,split:1,adcp:0,reg:1,note:'Etapa ausente na Nota. Com a linha antiga fechada nas duas pontas, confirmar que não há passagem (nível estático na caixa, ausência de fluxo na saída). Sem isso a medição de jusante não prova nada.'}},
+ {t:'Manter a linha nova isolada por ≥ 2 h',s:'Réguas a cada 15–20 min; critério de abortar por NA.',st:{c1:0,c2:1,s1:0,s2:1,ens:0,fill:1,split:1,adcp:0,reg:1,clock:1,note:'Período de observação. Se o NA de montante subir continuamente (barra abaixo), a linha nova não está aceitando a vazão – abortar antes de atingir a descarga de segurança (2,26 m).'}},
+ {t:'Medições definitivas com a linha nova isolada',s:'Seção de jusante prioritária; ≥ 4 travessias.',st:{c1:0,c2:1,s1:0,s2:1,ens:0,fill:1,split:1,adcp:1,reg:1,note:'Registrar no painel “Registro e aceite”. Além de Q ≥ 9,5 m³/s, anotar o NA de montante: é ele que diz se o sifão conduz a vazão dentro da perda de carga aceitável.'}},
+ {t:'Reabrir a linha antiga e devolver o sistema à operação',s:'Não consta da Nota.',gap:1,st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:0,reg:1,note:'Etapa ausente na Nota. Reabertura gradual e comunicação à COGERH para reajuste da vazão de controle.'}},
+ {t:'Analisar resultados e emitir relatório de comprovação',s:'Repetir o ciclo nos outros cinco sifões.',st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:0,reg:1,note:'Relatório por sifão: Q jusante, Q montante, NA montante/jusante, ΔH observado, dispersão das travessias, tomadas compensadas.'}}
+];
+let cur=0,clockT=null,clockStart=0;
+const ol=$('steps');
+STEPS.forEach((s,i)=>{const li=document.createElement('li');li.innerHTML=`${s.t}<small>${s.s}</small>`;if(s.gap)li.classList.add('gap');li.addEventListener('click',()=>{cur=i;stepRender();});ol.appendChild(li);});
+function setFlow(id,q,base){const el=$(id);el.classList.toggle('off',q<=0.01);el.classList.toggle('slow',q>0.01&&q<base*0.7);}
+function stepRender(){
+  const st=STEPS[cur].st,Q=num('aQ'),fr=num('aFr');
+  [...ol.children].forEach((li,i)=>{li.classList.toggle('on',i===cur);li.classList.toggle('done',i<cur);});
+  $('prev').disabled=cur===0;$('next').disabled=cur===STEPS.length-1;
+  $('c1').setAttribute('fill',st.c1?'#fff':'#3F4A55');$('c2').setAttribute('fill',st.c2?'#fff':'#3F4A55');
+  $('s1').setAttribute('fill',st.s1?'#fff':'#3F4A55');$('s2').setAttribute('fill',st.s2?'#fff':'#3F4A55');
+  $('e1').style.opacity=$('e2').style.opacity=st.ens?1:0;$('legEns').style.opacity=st.ens?1:0;
+  $('fill2').setAttribute('width',st.fill?260:0);
+  $('adcp').style.opacity=st.adcp?1:0;$('reg').style.opacity=st.reg?1:0;
+  const qm=(st.c1||st.c2)?Q:0;
+  let q2=0,q1=0;
+  if(st.c2&&st.s2&&st.c1&&st.s1){q2=Q*st.split;q1=Q-q2;}
+  else if(st.c2&&st.s2){q2=Q*fr;q1=st.c1?Q-q2:0;}
+  else if(st.c1&&st.s1){q1=Q;}
+  const qj=q1+q2;
+  setFlow('fm',qm,Q);setFlow('f1',q1,Q);setFlow('f2',q2,Q);setFlow('fj',qj,Q);
+  $('f2').setAttribute('stroke',q2>0?'#C63D2F':'#1D6FB0');
+  $('qm').textContent='Q montante '+f2(qm,1)+' m³/s';$('q1').textContent='Q tubo 1 '+f2(q1,1)+' m³/s';$('q2').textContent='Q tubo 2 '+f2(q2,1)+' m³/s';$('qj').textContent='Q jusante '+f2(qj,1)+' m³/s';
+  const c=canalParams();
+  let NAj=qj>0?yn(qj,c.b,c.m,c.S,c.n):yn(Q,c.b,c.m,c.S,c.n)*0.9;
+  let NAm=NAj;
+  if(q2>0){const s=sifao(q2);NAm=Math.max(NAj,s.NAm);}else if(q1>0){NAm=NAj+0.05;}
+  if(!(st.c1||st.c2)) NAm=yn(Q,c.b,c.m,c.S,c.n);
+  const H=c.H;
+  $('barM').style.width=Math.min(100,NAm/H*100)+'%';$('barJ').style.width=Math.min(100,NAj/H*100)+'%';
+  $('barM').style.background=NAm>2.16?'#B23A2E':'#1D6FB0';
+  $('txtM').textContent=f2(NAm)+' m'+(NAm>2.16?' – acima do NA máx.':'');$('txtJ').textContent=f2(NAj)+' m';
+  $('barF').style.width=(st.fill?100:0)+'%';$('txtF').textContent=st.fill?'linha cheia':'linha isolada / vazia';
+  const n=$('stepnote');n.className='stepnote'+(STEPS[cur].gap?'':' plain');n.textContent=st.note;
+  clearInterval(clockT);
+  if(st.clock){clockStart=Date.now();$('clocklbl').textContent='tempo simulado (1 s = 1 min)';tick();clockT=setInterval(tick,1000);}
+  else{$('clock').textContent='–';$('clocklbl').textContent='';}
+}
+function tick(){const m=Math.floor((Date.now()-clockStart)/1000);$('clock').textContent=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');$('clocklbl').textContent=m>=120?'2 h cumpridas – pode medir':'tempo simulado (1 s = 1 min) – mínimo 02:00';}
+$('prev').addEventListener('click',()=>{cur=Math.max(0,cur-1);stepRender();});
+$('next').addEventListener('click',()=>{cur=Math.min(STEPS.length-1,cur+1);stepRender();});
+['aQ','aFr'].forEach(id=>$(id).addEventListener('input',stepRender));
+
+/* ---------- D ---------- */
+let rows=[];
+function addRow(r){rows.push(r||{sec:'jus',dir:'ida',dur:300,q:''});renderRows();}
+function renderRows(){
+  $('dRows').innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td><select data-i="${i}" data-k="sec"><option value="jus"${r.sec==='jus'?' selected':''}>Jusante</option><option value="mon"${r.sec==='mon'?' selected':''}>Montante</option></select></td><td><select data-i="${i}" data-k="dir"><option value="ida"${r.dir==='ida'?' selected':''}>Ida (ME→MD)</option><option value="volta"${r.dir==='volta'?' selected':''}>Volta (MD→ME)</option></select></td><td class="num"><input type="number" data-i="${i}" data-k="dur" value="${r.dur}" step="10"></td><td class="num"><input type="number" data-i="${i}" data-k="q" value="${r.q}" step="0.01"></td><td><button class="btn" data-del="${i}">×</button></td></tr>`).join('');
+  $('dRows').querySelectorAll('input,select').forEach(el=>el.addEventListener('input',e=>{rows[+el.dataset.i][el.dataset.k]=el.dataset.k==='sec'||el.dataset.k==='dir'?el.value:parseFloat(el.value);calcD();}));
+  $('dRows').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{rows.splice(+b.dataset.del,1);renderRows();}));
+  calcD();
+}
+function stats(sec){
+  const v=rows.filter(r=>r.sec===sec&&r.q>0);const n=v.length;if(!n)return null;
+  const mean=v.reduce((a,r)=>a+r.q,0)/n,sd=n>1?Math.sqrt(v.reduce((a,r)=>a+(r.q-mean)**2,0)/(n-1)):0;
+  return{n,mean,cv:sd/mean*100,dur:v.reduce((a,r)=>a+(r.dur||0),0),ida:v.filter(r=>r.dir==='ida').length,volta:v.filter(r=>r.dir==='volta').length};
+}
+function kvStats(s){if(!s)return'<div>Sem travessias</div><div>–</div>';return`<div>Travessias</div><div>${s.n} (${s.ida} ida / ${s.volta} volta)</div><div>Duração total</div><div>${s.dur} s</div><div>Q média</div><div>${f2(s.mean)} m³/s</div><div>Coef. de variação</div><div>${f2(s.cv,1)} %</div>`;}
+function calcD(){
+  const Q=num('dQ'),tom=num('dTom'),Qc=num('dQc'),alvo=Q+tom,dev=(Qc-alvo)/alvo*100;
+  $('dCtl').innerHTML=`<div>Q de controle necessária</div><div>${f2(alvo)} m³/s</div><div>Desvio medido</div><div>${f2(dev,1)} % (${f2((Qc-alvo)*1000,0)} l/s)</div><div>Q que chega ao sifão (estimada)</div><div>${f2(Qc-tom)} m³/s</div>`;
+  const lo=alvo*0.90,hi=alvo*1.10,px=v=>(v-lo)/(hi-lo)*100;
+  $('tol').innerHTML=`<span class="band5" style="left:${px(alvo*.95)}%;width:${px(alvo*1.05)-px(alvo*.95)}%"></span><span class="band2" style="left:${px(alvo*.98)}%;width:${px(alvo*1.02)-px(alvo*.98)}%"></span><span class="pt" style="left:${Math.max(0,Math.min(100,px(Qc)))}%"></span><span class="tick" style="left:${px(alvo)}%">${f2(alvo)}</span><span class="tick" style="left:${px(alvo*.95)}%">−5 %</span><span class="tick" style="left:${px(alvo*1.05)}%">+5 %</span>`;
+  const sj=stats('jus'),sm=stats('mon');
+  $('dJus').innerHTML=kvStats(sj);$('dMon').innerHTML=kvStats(sm);
+  const NAm=num('dNAm'),NAj=num('dNAj'),NAmax=num('dNAmax'),T=num('dT'),est=$('dEst').value==='1';
+  const chk=[
+   ['Q média de jusante ≥ 9,5 m³/s',sj?sj.mean>=9.5:null,sj?f2(sj.mean)+' m³/s':'sem dado'],
+   ['Mínimo 4 travessias recíprocas a jusante',sj?sj.n>=4&&sj.ida>=2&&sj.volta>=2:null,sj?`${sj.n} (${sj.ida}/${sj.volta})`:'sem dado'],
+   ['Duração total ≥ 720 s a jusante',sj?sj.dur>=720:null,sj?sj.dur+' s':'sem dado'],
+   ['Coef. de variação ≤ 5 %',sj?sj.cv<=5:null,sj?f2(sj.cv,1)+' %':'sem dado'],
+   ['Balanço montante − jusante ≤ 5 % (se medido)',sm&&sj?Math.abs(sm.mean-sj.mean)/sj.mean<=0.05:true,sm&&sj?f2((sm.mean-sj.mean)/sj.mean*100,1)+' %':'não medido'],
+   ['NA de montante ≤ NA máx. de operação',NAm<=NAmax,f2(NAm)+' / '+f2(NAmax)+' m'],
+   ['ΔH observado (NA mont − NA jus)',true,f2(NAm-NAj)+' m – comparar com ΔH de projeto (não informado)'],
+   ['Linha antiga fechada por ≥ 120 min',T>=120,T+' min'],
+   ['Estanqueidade da linha antiga verificada',est,est?'sim':'não']
+  ];
+  $('dChk').innerHTML=chk.map(c=>`<tr><td>${c[0]}</td><td class="num">${c[2]}</td><td style="width:90px;font-weight:600;color:${c[1]===null?'#5B6B7A':c[1]?'#2C7A4B':'#B23A2E'}">${c[1]===null?'pendente':c[1]?'atende':'não atende'}</td></tr>`).join('');
+  const v=$('dVer'),fail=chk.filter(c=>c[1]===false).length,pend=chk.filter(c=>c[1]===null).length;
+  if(pend){v.className='verdict';v.textContent='Aguardando travessias de jusante para emitir veredito.';}
+  else if(fail){v.className='verdict bad';v.textContent=`Não aprovado: ${fail} condição(ões) não atendida(s).`;}
+  else{v.className='verdict ok';v.textContent='Aprovado: a linha nova conduz ≥ 9,5 m³/s isoladamente, com dispersão e nível de montante dentro dos limites.';}
+}
+$('dAdd').addEventListener('click',()=>addRow());
+$('dClr').addEventListener('click',()=>{rows=[];renderRows();});
+$('dDemo').addEventListener('click',()=>{rows=[
+ {sec:'jus',dir:'ida',dur:210,q:9.71},{sec:'jus',dir:'volta',dur:220,q:9.62},{sec:'jus',dir:'ida',dur:205,q:9.58},{sec:'jus',dir:'volta',dur:215,q:9.66},
+ {sec:'mon',dir:'ida',dur:200,q:9.80},{sec:'mon',dir:'volta',dur:210,q:9.74}];renderRows();});
+['dQ','dTom','dQc','dNAm','dNAj','dNAmax','dT','dEst'].forEach(id=>$(id).addEventListener('input',calcD));
+
+calcB();calcC();stepRender();renderRows();
+})();
+</script>
+</body>
+</html>
