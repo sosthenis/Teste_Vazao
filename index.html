@@ -3,586 +3,440 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Teste de vazão – 2ª linha dos sifões, Lote 4 (Eixão das Águas)</title>
+<title>Resumo Operacional · EB Castanhão · COGERH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --paper:#F3F6F9; --ink:#17232E; --muted:#5B6B7A; --line:#C9D3DC;
-  --water:#1D6FB0; --water2:#8FC3E8; --concrete:#8B949D; --steel:#3F4A55;
-  --warn:#B7791F; --bad:#B23A2E; --ok:#2C7A4B; --new:#C63D2F; --old:#1D6FB0;
+  --azul:#0E5FA6; --azul-esc:#083F70; --verde:#2E9E4F; --amarelo:#FFE600; --laranja:#F5B77A;
+  --ink:#1D2A38; --ink-2:#4B5A6B; --papel:#F5F7F9; --branco:#fff; --linha:#D7DEE6; --erro:#C0392B;
+  --raio:6px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
-header{background:#fff;border-bottom:2px solid var(--ink);padding:18px 28px}
-header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
-header p{margin:4px 0 0;color:var(--muted);font-size:14px}
-nav{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--line);padding:0 28px;overflow-x:auto}
-nav button{border:0;background:none;padding:12px 16px;font:inherit;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
-nav button[aria-selected=true]{color:var(--ink);border-color:var(--water)}
-nav button:focus-visible{outline:2px solid var(--water);outline-offset:-2px}
-main{padding:24px 28px 60px;max-width:1240px;margin:0 auto}
-section[hidden]{display:none}
-h2{font-size:18px;font-weight:600;margin:0 0 6px}
-.lead{color:var(--muted);max-width:70ch;margin:0 0 18px}
-.grid{display:grid;gap:22px}
-.g2{grid-template-columns:1fr 1fr}
-.g3{grid-template-columns:2fr 1fr}
-@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
-.panel{background:#fff;border:1px solid var(--line);padding:18px 20px}
-.panel h3{margin:0 0 12px;font-size:15px;font-weight:600}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:2px}
-input[type=number],input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px;color:var(--ink)}
-input:focus-visible,select:focus-visible{outline:2px solid var(--water);outline-offset:0}
-.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-weight:600;color:var(--muted);font-size:13px}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-.kv{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-variant-numeric:tabular-nums}
-.kv div:nth-child(even){text-align:right;font-weight:600}
-.verdict{padding:12px 14px;font-weight:600;border-left:5px solid var(--muted);background:#F7F9FB;margin-top:12px}
-.verdict.ok{border-color:var(--ok);color:var(--ok)}
-.verdict.bad{border-color:var(--bad);color:var(--bad)}
-.verdict.warn{border-color:var(--warn);color:var(--warn)}
-.btn{border:1px solid var(--ink);background:#fff;padding:8px 14px;font:inherit;cursor:pointer;color:var(--ink)}
-.btn.primary{background:var(--ink);color:#fff}
-.btn:disabled{opacity:.4;cursor:default}
-.btn:focus-visible{outline:2px solid var(--water);outline-offset:2px}
-.steps{list-style:none;margin:0;padding:0;counter-reset:s}
-.steps li{padding:9px 10px 9px 40px;border-bottom:1px solid var(--line);position:relative;cursor:pointer;color:var(--muted)}
-.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:10px;top:9px;width:22px;height:22px;border:1px solid var(--line);border-radius:50%;text-align:center;font-size:12px;line-height:20px;color:var(--muted);background:#fff}
-.steps li.on{color:var(--ink);background:#EEF4FA}
-.steps li.on::before{background:var(--ink);color:#fff;border-color:var(--ink)}
-.steps li.done::before{border-color:var(--ok);color:var(--ok)}
-.steps li small{display:block;font-size:12px;color:var(--muted)}
-.steps li.gap{border-left:3px solid var(--warn)}
-.stepnote{margin-top:14px;padding:12px 14px;background:#FBF7EC;border-left:4px solid var(--warn);font-size:14px}
-.stepnote.plain{background:#F7F9FB;border-color:var(--water)}
-/* schematic */
-.flow{stroke-dasharray:14 10;animation:dash 1.2s linear infinite}
-.flow.slow{animation-duration:2.4s}
-.flow.off{animation:none;stroke-dasharray:none;opacity:.25}
-@keyframes dash{to{stroke-dashoffset:-24}}
-@media(prefers-reduced-motion:reduce){.flow{animation:none}}
-.gauge{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
-.gauge div{flex:1;min-width:160px}
-.bar{height:14px;background:#E6ECF1;position:relative;border:1px solid var(--line)}
-.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--water)}
-.bar b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad)}
-.small{font-size:13px;color:var(--muted)}
-.ressalva{border-bottom:1px solid var(--line);padding:12px 0}
-.ressalva strong{display:block}
-canvas{width:100%;height:220px;display:block;border:1px solid var(--line);background:#fff}
-.clock{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
-.tolbar{position:relative;height:38px;margin:10px 0 4px}
-.tolbar span{position:absolute;top:0;height:14px;font-size:12px}
-.tolbar .band5{background:#F3E7C9}.tolbar .band2{background:#DCEBF7}
-.tolbar .pt{position:absolute;top:0;width:2px;height:22px;background:var(--bad)}
-.tolbar .tick{position:absolute;top:20px;font-size:11px;color:var(--muted);transform:translateX(-50%)}
+html,body{margin:0;background:var(--papel);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--azul)}
 
-/* help */
-.help{margin-left:auto;border:1px solid var(--ink);background:#fff;padding:8px 14px;font:inherit;font-weight:500;cursor:pointer;color:var(--ink);align-self:center}
-.help:hover{background:var(--ink);color:#fff}
-#helpDlg{border:0;padding:0;width:min(960px,94vw);max-height:92vh;background:#fff;box-shadow:0 8px 40px rgba(0,0,0,.25)}
-#helpDlg::backdrop{background:rgba(23,35,46,.55)}
-#helpHead{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:12px 20px;background:#fff;border-bottom:2px solid var(--ink);z-index:1}
-#helpHead h2{flex:1;font-size:16px;margin:0}
-#helpBody{padding:8px 24px 32px;overflow:auto;max-height:calc(92vh - 54px);font-size:14px;line-height:1.55}
-#helpBody h1{font-size:20px;margin:16px 0 8px}
-#helpBody h2{font-size:17px;margin:22px 0 6px;padding-top:8px;border-top:1px solid var(--line)}
-#helpBody h3{font-size:15px;margin:16px 0 4px}
-#helpBody table{margin:8px 0 12px;font-size:13px}
-#helpBody th{background:#F3F6F9}
-#helpBody hr{border:0;border-top:1px solid var(--line);margin:18px 0}
-#helpBody code{background:#F3F6F9;padding:1px 4px;font-size:13px}
-#helpBody ul,#helpBody ol{padding-left:22px}
-#helpBody li{margin:2px 0}
+header{background:var(--branco);border-bottom:4px solid var(--azul);position:relative}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:4px;background:linear-gradient(90deg,var(--verde) 0 40%,var(--amarelo) 40% 55%,var(--azul) 55%)}
+.head-in{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.head-in img{height:64px;width:auto}
+.head-in h1{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.head-in h1 small{display:block;font-size:13px;font-weight:400;color:var(--ink-2)}
+.status{margin-left:auto;font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:#B8C2CC}
+.dot.on{background:var(--verde)} .dot.off{background:var(--erro)}
+
+nav{max-width:1180px;margin:18px auto 0;padding:0 20px;display:flex;gap:4px}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;cursor:pointer;color:var(--ink-2);font-weight:500}
+nav button[aria-selected=true]{color:var(--azul-esc);border-color:var(--azul)}
+nav button:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+
+main{max-width:1180px;margin:0 auto;padding:16px 20px 60px}
+.pane{display:none}.pane.on{display:block}
+
+/* ---------- Formulário no estilo da planilha ---------- */
+.folha{background:var(--branco);border:1px solid var(--linha);max-width:760px}
+.folha .titulo{background:#FFB000;color:#000;font-weight:700;padding:8px 14px;font-size:17px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.folha .titulo input{width:auto;background:#fff8;border:1px solid #0002;padding:2px 6px;border-radius:4px;font-weight:600}
+.bloco{padding:0 0 6px}
+.bloco h2{font-size:14px;font-weight:600;margin:10px 14px 4px;background:var(--laranja);display:inline-block;padding:2px 8px}
+.linha{display:grid;grid-template-columns:1fr 150px 70px;align-items:center;gap:10px;padding:5px 14px;border-top:1px dashed #EEF1F4}
+.linha.chave{background:var(--amarelo);border-top:0}
+.linha.chave label{font-weight:600}
+.linha label{font-size:14px}
+.linha input{width:100%;text-align:right;border:1px solid var(--linha);border-radius:4px;padding:6px 8px;background:#fff;color:var(--azul);font-weight:600}
+.linha input:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
+.linha input.calc{background:#EEF6FF;border-style:dashed}
+.linha .un{font-size:13px;color:var(--ink-2)}
+.linha .un i{font-style:normal;font-size:11px;color:var(--azul);display:block;line-height:1}
+.hint{font-size:12px;color:var(--ink-2);margin:0 14px 6px}
+.bombas{display:grid;grid-template-columns:70px 1fr 90px;gap:8px 10px;padding:6px 14px;align-items:center}
+.bombas .cab{font-size:12px;color:var(--ink-2)}
+.bombas input{width:100%;text-align:right;border:1px solid var(--linha);border-radius:4px;padding:6px 8px;color:var(--azul);font-weight:600}
+.bombas b{font-weight:600}
+.acoes{display:flex;gap:10px;flex-wrap:wrap;padding:14px;border-top:1px solid var(--linha);align-items:center}
+.btn{background:var(--azul);color:#fff;border:0;border-radius:var(--raio);padding:10px 18px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--azul-esc)} .btn:disabled{opacity:.5;cursor:default}
+.btn.sec{background:#fff;color:var(--azul);border:1px solid var(--azul)}
+.btn:focus-visible{outline:2px solid var(--azul-esc);outline-offset:2px}
+.msg{font-size:14px} .msg.ok{color:var(--verde)} .msg.erro{color:var(--erro)}
+.anterior{padding:6px 14px 8px;font-size:12px;color:var(--ink-2);border-top:1px solid var(--linha)}
+.anterior b{color:var(--ink)}
+
+/* ---------- Dashboard ---------- */
+.painel{background:var(--branco);border:1px solid var(--linha);padding:16px;margin-bottom:16px}
+.controles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+.controles label{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}
+.controles select,.controles input{width:100%;border:1px solid var(--linha);border-radius:4px;padding:8px}
+.controles select[multiple]{height:118px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--branco);border:1px solid var(--linha);border-left:4px solid var(--azul);padding:10px 12px}
+.kpi span{display:block;font-size:12px;color:var(--ink-2)} .kpi strong{font-size:22px;font-weight:600}
+.kpi.k2{border-left-color:var(--verde)} .kpi.k3{border-left-color:#FFB000}
+canvas{max-height:380px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--linha);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:#fff;font-weight:600;color:var(--ink-2)}
+.tbl-wrap{max-height:420px;overflow:auto}
+tr.link{cursor:pointer} tr.link:hover{background:#EEF6FF}
+
+/* ---------- Config / senha ---------- */
+.modal{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.on{display:flex}
+.modal .cx{background:#fff;border-radius:8px;padding:20px;max-width:420px;width:100%}
+.modal h3{margin:0 0 6px}
+.modal p{margin:0 0 12px;font-size:14px;color:var(--ink-2)}
+.modal input{width:100%;border:1px solid var(--linha);border-radius:4px;padding:9px;margin-bottom:10px}
+
+@media (max-width:640px){
+  .linha{grid-template-columns:1fr 120px 60px}
+  .head-in img{height:48px}
+  .status{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>Teste de vazão da 2ª linha dos sifões – Lote 4, Eixão das Águas</h1>
-  <p>Simulação do procedimento, verificação hidráulica e registro de aceite. Referência: Nota Técnica CCEA/Tri-Stars, ago/2026, rev. 00. Valores editáveis; parâmetros dos sifões são ilustrativos até o consórcio informar L e ΔH de projeto.</p>
+  <div class="head-in">
+    <img src="data:image/png;base64,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" alt="COGERH · Governo do Estado do Ceará">
+    <h1>Resumo Operacional<small>EB Castanhão · Eixão das Águas · Trecho I</small></h1>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">Sem conexão configurada</span>
+      <button class="btn sec" style="padding:5px 10px;font-size:13px" id="btnCfg">Configurar</button></div>
+  </div>
 </header>
+
 <nav role="tablist">
-  <button role="tab" aria-selected="true" data-t="a">Como o teste ocorre</button>
-  <button role="tab" data-t="b">Canal (Manning)</button>
-  <button role="tab" data-t="c">Sifão (perda de carga)</button>
-  <button role="tab" data-t="d">Registro e aceite</button>
-  <button role="tab" data-t="e">Ressalvas à Nota</button>
-  <button class="help" id="helpBtn" type="button" aria-haspopup="dialog">Help</button>
+  <button role="tab" aria-selected="true" data-p="form">Preencher</button>
+  <button role="tab" aria-selected="false" data-p="dash">Gráficos</button>
+  <button role="tab" aria-selected="false" data-p="hist">Histórico</button>
 </nav>
+
 <main>
+<!-- ================= PREENCHER ================= -->
+<section class="pane on" id="p-form">
+  <form class="folha" id="f" autocomplete="off">
+    <div class="titulo"><span>RESUMO OPERACIONAL</span>
+      <span><input type="date" id="data" required> <input type="time" id="hora" required></span></div>
 
-<!-- ================= A ================= -->
-<section id="tab-a">
-  <h2>Sequência do teste em um sifão</h2>
-  <p class="lead">Planta esquemática de um dos seis sifões: canal de montante, caixa de entrada com comportas, duas tubulações DN 2500 (1ª e 2ª etapa), caixa de saída com stop-logs e canal de jusante. Percorra as etapas; os passos marcados em âmbar não constam da Nota e foram acrescentados.</p>
-  <div class="grid g3">
-    <div class="panel">
-      <svg id="svg" viewBox="0 0 900 330" width="100%" role="img" aria-label="Planta esquemática do sifão">
-        <defs>
-          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1D6FB0"/></marker>
-        </defs>
-        <!-- canal montante -->
-        <path d="M0 95 L230 125 L230 215 L0 245 Z" fill="#DDEBF6" stroke="#8B949D"/>
-        <path d="M0 122 L230 145 L230 195 L0 218 Z" fill="#B9D9F0" opacity=".7"/>
-        <text x="12" y="88" font-size="12" fill="#5B6B7A">Canal de montante</text>
-        <!-- canal jusante -->
-        <path d="M670 125 L900 95 L900 245 L670 215 Z" fill="#DDEBF6" stroke="#8B949D"/>
-        <path d="M670 145 L900 122 L900 218 L670 195 Z" fill="#B9D9F0" opacity=".7"/>
-        <text x="760" y="88" font-size="12" fill="#5B6B7A">Canal de jusante</text>
-        <!-- caixas -->
-        <rect x="230" y="110" width="90" height="120" fill="#EDEFF2" stroke="#3F4A55"/>
-        <text x="236" y="252" font-size="11" fill="#5B6B7A">Caixa de entrada</text>
-        <rect x="580" y="110" width="90" height="120" fill="#EDEFF2" stroke="#3F4A55"/>
-        <text x="590" y="252" font-size="11" fill="#5B6B7A">Caixa de saída</text>
-        <!-- tubos -->
-        <rect x="320" y="132" width="260" height="26" fill="#fff" stroke="#1D6FB0" stroke-width="2"/>
-        <rect x="320" y="182" width="260" height="26" fill="#fff" stroke="#C63D2F" stroke-width="2"/>
-        <rect id="fill2" x="320" y="182" width="0" height="26" fill="#F5D0CB"/>
-        <text x="330" y="126" font-size="12" fill="#1D6FB0">Tubo 1ª etapa – DN 2500 – linha existente</text>
-        <text x="330" y="226" font-size="12" fill="#C63D2F">Tubo 2ª etapa – DN 2500 – linha em teste</text>
-        <!-- fluxos -->
-        <line id="fm" class="flow" x1="20" y1="170" x2="215" y2="170" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
-        <line id="f1" class="flow" x1="330" y1="145" x2="565" y2="145" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
-        <line id="f2" class="flow" x1="330" y1="195" x2="565" y2="195" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
-        <line id="fj" class="flow" x1="685" y1="170" x2="880" y2="170" stroke="#1D6FB0" stroke-width="4" marker-end="url(#arr)"/>
-        <!-- comportas montante -->
-        <rect id="c1" x="300" y="128" width="8" height="34" fill="#fff" stroke="#3F4A55"/>
-        <rect id="c2" x="300" y="178" width="8" height="34" fill="#fff" stroke="#3F4A55"/>
-        <text x="240" y="128" font-size="10" fill="#3F4A55">Comporta 1</text>
-        <text x="240" y="178" font-size="10" fill="#3F4A55">Comporta 2</text>
-        <!-- stop-logs jusante -->
-        <rect id="s1" x="592" y="128" width="8" height="34" fill="#fff" stroke="#3F4A55"/>
-        <rect id="s2" x="592" y="178" width="8" height="34" fill="#3F4A55" stroke="#3F4A55"/>
-        <text x="606" y="128" font-size="10" fill="#3F4A55">Stop-log 1</text>
-        <text x="606" y="178" font-size="10" fill="#3F4A55">Stop-log 2</text>
-        <!-- ensecadeiras -->
-        <rect id="e1" x="322" y="180" width="10" height="30" fill="#8B5E3C"/>
-        <rect id="e2" x="568" y="180" width="10" height="30" fill="#8B5E3C"/>
-        <!-- seções de medição -->
-        <line x1="110" y1="80" x2="110" y2="262" stroke="#B7791F" stroke-dasharray="5 4"/>
-        <text x="60" y="278" font-size="11" fill="#B7791F">Seção montante (≥ 20 m)</text>
-        <line x1="790" y1="80" x2="790" y2="262" stroke="#B7791F" stroke-dasharray="5 4"/>
-        <text x="735" y="278" font-size="11" fill="#B7791F">Seção jusante (≥ 20 m) – prioritária</text>
-        <g id="adcp" opacity="0">
-          <circle cx="110" cy="170" r="9" fill="#B7791F"/><text x="122" y="174" font-size="11" fill="#B7791F">ADCP</text>
-          <circle cx="790" cy="170" r="9" fill="#B7791F"/><text x="802" y="174" font-size="11" fill="#B7791F">ADCP</text>
-        </g>
-        <!-- réguas -->
-        <g id="reg" opacity="0">
-          <rect x="128" y="120" width="4" height="40" fill="#fff" stroke="#17232E"/><text x="136" y="134" font-size="10">régua</text>
-          <rect x="768" y="120" width="4" height="40" fill="#fff" stroke="#17232E"/><text x="740" y="134" font-size="10">régua</text>
-        </g>
-        <!-- vazões -->
-        <text id="qm" x="20" y="300" font-size="13" font-weight="600" fill="#17232E">Q montante –</text>
-        <text id="q1" x="340" y="300" font-size="13" font-weight="600" fill="#1D6FB0">Q tubo 1 –</text>
-        <text id="q2" x="340" y="318" font-size="13" font-weight="600" fill="#C63D2F">Q tubo 2 –</text>
-        <text id="qj" x="720" y="300" font-size="13" font-weight="600" fill="#17232E">Q jusante –</text>
-        <text id="legEns" x="560" y="318" font-size="11" fill="#8B5E3C">■ ensecadeira de alvenaria</text>
-      </svg>
-      <div class="gauge">
-        <div><label>NA canal de montante (yn + remanso do sifão)</label><div class="bar"><i id="barM"></i><b style="left:77%"></b></div><div class="small" id="txtM"></div></div>
-        <div><label>NA canal de jusante</label><div class="bar"><i id="barJ"></i><b style="left:77%"></b></div><div class="small" id="txtJ"></div></div>
-        <div><label>Enchimento da linha nova</label><div class="bar"><i id="barF" style="background:#C63D2F"></i></div><div class="small" id="txtF"></div></div>
-      </div>
-      <p class="small" style="margin:8px 0 0">Marca vermelha nas barras = NA máximo de operação (2,16 m). Escala 0–2,80 m (altura da obra). O remanso é calculado com os parâmetros do painel “Sifão”.</p>
-      <div id="stepnote" class="stepnote plain"></div>
+    <div class="bloco">
+      <div class="linha chave"><label for="cota">Cota Castanhão</label><input id="cota" type="number" step="0.01" required><span class="un">m</span></div>
+      <div class="linha"><label for="pct">Percentual do volume</label><input id="pct" type="number" step="0.01" class="calc"><span class="un">%<i>calc.</i></span></div>
+      <div class="linha"><label for="variacao">Variação (em relação ao dia anterior)</label><input id="variacao" type="number" step="1" class="calc"><span class="un">cm<i>calc.</i></span></div>
+      <div class="linha"><label for="var_acum">Variação acumulada</label><input id="var_acum" type="number" step="0.01" class="calc"><span class="un">m<i>calc.</i></span></div>
+      <div class="linha"><label for="vol_acum">Volume acumulado Castanhão</label><input id="vol_acum" type="number" step="1" required><span class="un">m³</span></div>
+      <div class="linha"><label for="q_jaguaribe">Vazão média 24h (Rio Jaguaribe) — estimado</label><input id="q_jaguaribe" type="number" step="0.001"><span class="un">m³/s</span></div>
+      <div class="linha"><label for="q_jaguaribe_tipo">Vazão Jaguaribe — origem</label><select id="q_jaguaribe_tipo" style="width:100%;border:1px solid var(--linha);border-radius:4px;padding:6px 8px;color:var(--azul);font-weight:600"><option>ESTIMADO</option><option>MEDIDA</option></select><span class="un"></span></div>
+      <div class="linha"><label for="q_mandacaru">Vazão média Mandacaru</label><input id="q_mandacaru" type="number" step="1"><span class="un">L/s</span></div>
     </div>
-    <div class="panel">
-      <h3>Etapas</h3>
-      <ol class="steps" id="steps"></ol>
-      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
-        <button class="btn" id="prev">Anterior</button>
-        <button class="btn primary" id="next">Próxima etapa</button>
-        <span class="clock" id="clock" style="margin-left:auto">–</span>
-      </div>
-      <div class="small" id="clocklbl" style="text-align:right"></div>
-      <div style="margin-top:14px" class="fields">
-        <div><label>Q de teste na entrada (m³/s)</label><input type="number" id="aQ" value="9.5" step="0.1"></div>
-        <div><label>Fração para a linha nova ao fechar a antiga</label><input type="number" id="aFr" value="1" step="0.05" min="0" max="1"></div>
-      </div>
+
+    <div class="bloco">
+      <h2>Status de bombeamento EB Castanhão</h2>
+      <div class="linha"><label for="med1">Volume acumulado recalque — Medidor 1</label><input id="med1" type="number" step="1" required><span class="un">m³</span></div>
+      <div class="linha"><label for="med2">Volume acumulado recalque — Medidor 2</label><input id="med2" type="number" step="1" required><span class="un">m³</span></div>
+      <div class="linha"><label for="hora_rec">Horário da leitura</label><input id="hora_rec" type="time"><span class="un">h</span></div>
+      <div class="linha"><label for="vol_24h">Volume bombeado 24h</label><input id="vol_24h" type="number" step="1" class="calc"><span class="un">m³<i>calc.</i></span></div>
+      <div class="linha chave"><label for="q_trecho1">Vazão média 24h Trecho I</label><input id="q_trecho1" type="number" step="0.001" class="calc"><span class="un">m³/s<i>calc.</i></span></div>
+      <div class="linha"><label for="q_inst">Vazão instantânea</label><input id="q_inst" type="number" step="0.001"><span class="un">m³/s</span></div>
+      <div class="linha"><label for="n_bombas">Nº de bombas operando na hora da leitura</label><input id="n_bombas" type="number" step="1" min="0" max="8"><span class="un">un.</span></div>
     </div>
+
+    <div class="bloco">
+      <h2>Medidor tubulação principal Castanhão</h2>
+      <div class="linha"><label for="tot_acum">Volume total acumulado</label><input id="tot_acum" type="number" step="1" required><span class="un">m³</span></div>
+      <div class="linha"><label for="hora_tot">Horário da leitura</label><input id="hora_tot" type="time"><span class="un">h</span></div>
+      <div class="linha chave"><label for="q_total">Vazão total</label><input id="q_total" type="number" step="0.001" class="calc"><span class="un">m³/s<i>calc.</i></span></div>
+    </div>
+
+    <div class="bloco">
+      <h2>Medidor tubulação principal — leitura da tarde</h2>
+      <div class="linha"><label for="tot_acum_tarde">Volume total acumulado</label><input id="tot_acum_tarde" type="number" step="1"><span class="un">m³</span></div>
+      <div class="linha"><label for="hora_tot_tarde">Horário da leitura</label><input id="hora_tot_tarde" type="time"><span class="un">h</span></div>
+      <div class="linha chave"><label for="q_total_tarde">Vazão total (tarde)</label><input id="q_total_tarde" type="number" step="0.001" class="calc"><span class="un">m³/s<i>calc.</i></span></div>
+    </div>
+
+    <div class="bloco">
+      <h2>Resumo de horas trabalhadas</h2>
+      <div class="bombas" id="bombas"><span class="cab">Bomba</span><span class="cab">Horas (h:mm)</span><span class="cab">rpm</span></div>
+    </div>
+
+    <div class="bloco"><div class="linha" style="grid-template-columns:1fr"><input id="obs" type="text" placeholder="Observações (opcional)" style="text-align:left;font-weight:400;color:var(--ink)"></div></div>
+    <div class="anterior" id="anterior">Sem leitura anterior carregada — os campos calculados ficam em branco até a próxima leitura.</div>
+    <div class="acoes">
+      <button class="btn" type="submit" id="btnSalvar">Salvar leitura</button>
+      <button class="btn sec" type="button" id="btnLimpar">Limpar</button>
+      <button class="btn sec" type="button" id="btnRecalc">Recalcular</button>
+      <span class="msg" id="msg"></span>
+    </div>
+  </form>
+  <p class="hint" style="margin-top:10px">Campos com fundo azul-claro são calculados a partir da leitura anterior; podem ser editados antes de salvar. Se já existir leitura na mesma data, ela é substituída.</p>
+</section>
+
+<!-- ================= GRÁFICOS ================= -->
+<section class="pane" id="p-dash">
+  <div class="kpis" id="kpis"></div>
+  <div class="painel">
+    <div class="controles">
+      <div><label for="vars">Variáveis (Ctrl/⌘ para várias)</label>
+        <select id="vars" multiple></select></div>
+      <div><label for="periodo">Período</label>
+        <select id="periodo"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="365">Último ano</option><option value="0">Tudo</option></select></div>
+      <div><label for="tipo">Tipo</label>
+        <select id="tipo"><option value="line">Linha</option><option value="bar">Barras</option></select></div>
+      <div><label for="eixo">Eixos</label>
+        <select id="eixo"><option value="1">Eixo único</option><option value="2">Segundo eixo p/ 2ª variável</option></select></div>
+      <div><button class="btn" type="button" id="btnPlot">Gerar gráfico</button></div>
+    </div>
+  </div>
+  <div class="painel"><canvas id="ch1"></canvas></div>
+  <div class="painel">
+    <div class="controles" style="margin-bottom:10px">
+      <div><label for="modoB">Horas das bombas</label>
+        <select id="modoB"><option value="dia">Por dia (empilhado por bomba)</option><option value="total">Total do período por bomba</option></select></div>
+    </div>
+    <canvas id="ch2"></canvas>
   </div>
 </section>
 
-<!-- ================= B ================= -->
-<section id="tab-b" hidden>
-  <h2>Canal trapezoidal – altura normal por Manning</h2>
-  <p class="lead">Reproduz o Quadro 2 da Nota (b = 5,00 m; taludes 1,5H:1V; S = 0,00015; n = 1/70). Use o modo inverso para converter a leitura da régua em vazão e conferir o ADCP em campo.</p>
-  <div class="grid g2">
-    <div class="panel">
-      <h3>Parâmetros</h3>
-      <div class="fields">
-        <div><label>Largura do fundo b (m)</label><input type="number" id="bb" value="5.00" step="0.1"></div>
-        <div><label>Talude m (H:1V)</label><input type="number" id="bm" value="1.5" step="0.1"></div>
-        <div><label>Declividade S (m/m)</label><input type="number" id="bS" value="0.00015" step="0.00001"></div>
-        <div><label>Manning n</label><input type="number" id="bn" value="0.014286" step="0.0001"></div>
-        <div><label>Altura da obra (m)</label><input type="number" id="bH" value="2.80" step="0.05"></div>
-      </div>
-      <h3 style="margin-top:18px">Direto: vazão → altura normal</h3>
-      <div class="fields"><div><label>Q (m³/s)</label><input type="number" id="bQ" value="9.5" step="0.1"></div></div>
-      <div class="kv" id="bOut" style="margin-top:10px"></div>
-      <h3 style="margin-top:18px">Inverso: leitura de régua → vazão</h3>
-      <div class="fields"><div><label>Lâmina y (m)</label><input type="number" id="by" value="1.49" step="0.01"></div></div>
-      <div class="kv" id="bOut2" style="margin-top:10px"></div>
+<!-- ================= HISTÓRICO ================= -->
+<section class="pane" id="p-hist">
+  <div class="painel">
+    <div class="acoes" style="border:0;padding:0 0 10px">
+      <button class="btn sec" type="button" id="btnReload">Atualizar</button>
+      <button class="btn sec" type="button" id="btnCsv">Baixar CSV</button>
+      <button class="btn sec" type="button" id="btnSeed">Enviar as 31 leituras de agosto/2026 à planilha</button>
+      <span class="msg" id="msgHist">Clique numa linha para carregá-la no formulário.</span>
     </div>
-    <div class="panel">
-      <h3>Seção transversal</h3>
-      <svg id="sec" viewBox="0 0 600 260" width="100%"></svg>
-      <table style="margin-top:14px">
-        <thead><tr><th>Q (m³/s)</th><th class="num">yn (m)</th><th class="num">T (m)</th><th class="num">A (m²)</th><th class="num">V (m/s)</th><th class="num">Revanche p/ 2,70 (m)</th></tr></thead>
-        <tbody id="bTab"></tbody>
-      </table>
-      <p class="small">Conferência: com os dados da Nota, yn(19,0) = 2,16 m e yn(9,5) = 1,49 m – o Quadro 2 está correto. A observação “2,70 − 0,64” do Quadro 1 é que não fecha (dá 2,06 m; o correto é 2,80 − 0,64).</p>
-    </div>
+    <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
   </div>
 </section>
-
-<!-- ================= C ================= -->
-<section id="tab-c" hidden>
-  <h2>Sifão DN 2500 – perda de carga e remanso</h2>
-  <p class="lead">A Nota não informa comprimento nem ΔH de projeto dos sifões; os valores abaixo são ilustrativos. O que importa: a que nível o canal de montante precisa subir para empurrar 9,5 m³/s pela linha nova, e se isso cabe dentro dos 2,16 m de operação.</p>
-  <div class="grid g2">
-    <div class="panel">
-      <h3>Parâmetros do sifão</h3>
-      <div class="fields">
-        <div><label>Comprimento L (m)</label><input type="number" id="cL" value="600" step="10"></div>
-        <div><label>Diâmetro interno D (m)</label><input type="number" id="cD" value="2.5" step="0.01"></div>
-        <div><label>Rugosidade ε (mm) – aço revestido</label><input type="number" id="cE" value="0.1" step="0.01"></div>
-        <div><label>ΣK perdas localizadas</label><input type="number" id="cK" value="1.8" step="0.1"></div>
-        <div><label>Desnível fundo montante − jusante ΔZ (m)</label><input type="number" id="cZ" value="0.10" step="0.01"></div>
-        <div><label>Q pela linha nova (m³/s)</label><input type="number" id="cQ" value="9.5" step="0.1"></div>
-        <div><label>NA máx. de operação (m)</label><input type="number" id="cNA" value="2.16" step="0.01"></div>
-        <div><label>Temperatura da água (°C)</label><input type="number" id="cT" value="27" step="1"></div>
-      </div>
-      <div class="kv" id="cOut" style="margin-top:14px"></div>
-      <div id="cVer" class="verdict"></div>
-      <h3 style="margin-top:18px">Enchimento da linha nova</h3>
-      <div class="fields">
-        <div><label>Vazão de enchimento (m³/s)</label><input type="number" id="cQf" value="0.5" step="0.05"></div>
-      </div>
-      <div class="kv" id="cFill" style="margin-top:10px"></div>
-      <p class="small">Enchimento lento com ventosas abertas; purga de ar antes de qualquer manobra de comporta. A Nota não trata desta fase.</p>
-    </div>
-    <div class="panel">
-      <h3>Curva Q × NA de montante necessário</h3>
-      <canvas id="cv" width="800" height="360"></canvas>
-      <p class="small">Linha vermelha: NA máximo de operação. O ponto marca a vazão de teste. NA jusante assumido igual à altura normal do canal para a mesma Q (painel Canal).</p>
-      <h3 style="margin-top:18px">Cenário “linha nova estrangulada”</h3>
-      <div class="fields">
-        <div><label>Capacidade real da linha nova (m³/s)</label><input type="number" id="cCap" value="8.0" step="0.1"></div>
-        <div><label>Comprimento de canal a montante que remansa (m)</label><input type="number" id="cLc" value="3000" step="100"></div>
-      </div>
-      <div class="kv" id="cRem" style="margin-top:10px"></div>
-      <p class="small">Estimativa grosseira de quanto tempo o canal leva para subir de yn até a soleira da descarga de segurança (NA máx + 0,10 m) quando a linha nova aceita menos que a vazão afluente. Serve para dimensionar o critério de abortar o teste.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ================= D ================= -->
-<section id="tab-d" hidden>
-  <h2>Registro de medições e critério de aceite</h2>
-  <p class="lead">Lance as travessias ADCP. O aceite exige, além de Q ≥ 9,5 m³/s, um número mínimo de travessias recíprocas, dispersão aceitável e nível de montante dentro do operacional – condições que a Nota não fixa.</p>
-  <div class="grid g2">
-    <div class="panel">
-      <h3>Vazão de controle na saída do Curral Velho</h3>
-      <div class="fields">
-        <div><label>Q alvo na entrada do sifão (m³/s)</label><input type="number" id="dQ" value="9.5" step="0.1"></div>
-        <div><label>Tomadas intermediárias Σ (m³/s)</label><input type="number" id="dTom" value="0.55" step="0.05"></div>
-        <div><label>Q medida no ponto de controle (m³/s)</label><input type="number" id="dQc" value="10.05" step="0.05"></div>
-      </div>
-      <div class="kv" id="dCtl" style="margin-top:10px"></div>
-      <div class="tolbar" id="tol"></div>
-      <div class="small">Faixa azul ±2 % (190 l/s), faixa âmbar ±5 %. A incerteza típica do ADCP em canal revestido é 3–5 %; por isso a recomendação de operar no limite superior (≈10,0 m³/s na entrada).</div>
-    </div>
-    <div class="panel">
-      <h3>Condições no canal durante o isolamento</h3>
-      <div class="fields">
-        <div><label>Régua montante – NA (m)</label><input type="number" id="dNAm" value="1.62" step="0.01"></div>
-        <div><label>Régua jusante – NA (m)</label><input type="number" id="dNAj" value="1.49" step="0.01"></div>
-        <div><label>NA máx. de operação (m)</label><input type="number" id="dNAmax" value="2.16" step="0.01"></div>
-        <div><label>Tempo com linha antiga fechada (min)</label><input type="number" id="dT" value="120" step="5"></div>
-        <div><label>Estanqueidade da linha antiga verificada?</label><select id="dEst"><option value="1">Sim</option><option value="0">Não</option></select></div>
-      </div>
-    </div>
-  </div>
-  <div class="panel" style="margin-top:22px">
-    <h3>Travessias ADCP</h3>
-    <table>
-      <thead><tr><th>#</th><th>Seção</th><th>Sentido</th><th class="num">Duração (s)</th><th class="num">Q (m³/s)</th><th></th></tr></thead>
-      <tbody id="dRows"></tbody>
-    </table>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn" id="dAdd">Adicionar travessia</button>
-      <button class="btn" id="dDemo">Preencher exemplo</button>
-      <button class="btn" id="dClr">Limpar</button>
-    </div>
-    <div class="grid g2" style="margin-top:16px">
-      <div><h3>Seção de jusante (prioritária)</h3><div class="kv" id="dJus"></div></div>
-      <div><h3>Seção de montante</h3><div class="kv" id="dMon"></div></div>
-    </div>
-    <h3 style="margin-top:18px">Verificação do aceite</h3>
-    <table><tbody id="dChk"></tbody></table>
-    <div id="dVer" class="verdict"></div>
-  </div>
-</section>
-
-<!-- ================= E ================= -->
-<section id="tab-e" hidden>
-  <h2>Ressalvas à Nota Técnica rev. 00</h2>
-  <p class="lead">Pontos a levar ao ofício de resposta da COGERH/GEOPE. Erros de digitação primeiro, método depois.</p>
-  <div class="grid g2">
-    <div class="panel">
-      <div class="ressalva"><strong>Quadro 1 – altura máxima de água</strong>“2,70 − 0,64” resulta 2,06 m, não 2,16 m. Corrigir para 2,80 − 0,64 (ou 2,70 − 0,54).</div>
-      <div class="ressalva"><strong>Seção 2 – estado das tubulações</strong>Diz que estão “com água” e “aguardando enchimento”. Definir o estado real; o procedimento de enchimento e purga depende disso.</div>
-      <div class="ressalva"><strong>Seção 5 – texto truncado</strong>O parágrafo da tolerância está incompleto; a regra de ±2 % / ±5 % fica ambígua.</div>
-      <div class="ressalva"><strong>Ponto de controle</strong>Calibrar no fim do Trecho 1 não define a vazão do Trecho 2: o Curral Velho é reservatório de passagem. O controle deve ser na saída do Curral Velho.</div>
-      <div class="ressalva"><strong>Etapas ausentes no Quadro 4</strong>Remoção das ensecadeiras; enchimento lento e purga de ar da linha nova; verificação de estanqueidade da linha antiga fechada (vazamento por stop-log contamina a medição de jusante); reabertura e retorno à operação normal.</div>
-    </div>
-    <div class="panel">
-      <div class="ressalva"><strong>Critério de aceite incompleto</strong>“Q ≥ 9,5 m³/s” é necessário, não suficiente: qualquer sifão conduz 9,5 se o canal de montante subir o bastante. Acrescentar NA montante ≤ nível operacional (ou ΔH ≤ ΔH de projeto) e informar L e ΔH de projeto de cada sifão.</div>
-      <div class="ressalva"><strong>Tolerância × incerteza</strong>Exigir ±2 % no ajuste e medir com instrumento de 3–5 % é inconsistente. Operar em ≈10,0 m³/s na entrada garante que a comprovação de ≥ 9,5 sobreviva à incerteza.</div>
-      <div class="ressalva"><strong>Descarga de segurança</strong>Só opera com NA &gt; 2,26 m. Entre 1,49 e 2,26 m há 0,77 m de remanso sem proteção e sem critério de abortar. Fixar NA limite e taxa de subida máxima.</div>
-      <div class="ressalva"><strong>Protocolo ADCP</strong>Não define nº de travessias (mínimo 4, recíprocas, ≥ 720 s no total), critério de descarte (CV &gt; 5 %) nem referência (bottom track em fundo de concreto vs. RTK).</div>
-      <div class="ressalva"><strong>O que a COGERH precisa saber</strong>Duração do teste, volume total (10 m³/s por dia ≈ 864 000 m³), destino a jusante, janela de estabilização do sistema após ajuste no Curral Velho e compensação das tomadas sifão a sifão.</div>
-    </div>
-  </div>
-</section>
-
-<dialog id="helpDlg" aria-labelledby="helpTitle">
-  <div id="helpHead"><h2 id="helpTitle">Help – descrição da demonstração</h2><button class="btn" id="helpPrint" type="button">Imprimir</button><button class="btn" id="helpClose" type="button">Fechar</button></div>
-  <div id="helpBody"></div>
-</dialog>
 </main>
 
+<div class="modal" id="modal">
+  <div class="cx">
+    <h3>Conexão com a planilha</h3>
+    <p>Cole a URL do Apps Script publicado (termina em <code>/exec</code>) e a senha da unidade.</p>
+    <input id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <input id="cfgSenha" type="password" placeholder="Senha">
+    <label style="font-size:13px;display:block;margin-bottom:12px"><input type="checkbox" id="cfgLembrar" checked> Lembrar neste aparelho</label>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn sec" type="button" id="cfgCancel">Cancelar</button>
+      <button class="btn" type="button" id="cfgOk">Conectar</button>
+    </div>
+  </div>
+</div>
+
 <script>
-(function(){
-const $=id=>document.getElementById(id);
-const num=id=>parseFloat($(id).value)||0;
-const f2=(x,d=2)=>x.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+/* ===================== Config ===================== */
+const CAPACIDADE_M3 = 6.7e9;          // Castanhão: 6,7 bilhões de m³ (100 %)
+const NB = 8;                          // motobombas MB-01..MB-08
+const VARS = {                         // chave: [rótulo, unidade, cor]
+  cota:['Cota Castanhão','m','#0E5FA6'], pct:['Volume (%)','%','#2E9E4F'],
+  variacao:['Variação diária','cm','#8E44AD'], var_acum:['Variação acumulada','m','#7F8C8D'],
+  vol_acum:['Volume acumulado Castanhão','m³','#083F70'],
+  q_jaguaribe:['Vazão Rio Jaguaribe (24h)','m³/s','#16A085'], q_mandacaru:['Vazão Mandacaru','L/s','#27AE60'],
+  vol_24h:['Volume bombeado 24h','m³','#E67E22'], q_trecho1:['Vazão média Trecho I','m³/s','#D35400'],
+  q_inst:['Vazão instantânea','m³/s','#F39C12'], n_bombas:['Bombas operando','un.','#C0392B'],
+  q_total:['Vazão total tubulação (manhã)','m³/s','#2C3E50'], q_total_tarde:['Vazão total tubulação (tarde)','m³/s','#7F8C8D'], horas_total:['Horas de bombeamento (soma MB)','h','#9B59B6']
+};
+const CAMPOS = ['data','hora','cota','pct','variacao','var_acum','vol_acum','q_jaguaribe','q_jaguaribe_tipo','q_mandacaru',
+  'med1','med2','hora_rec','vol_24h','q_trecho1','q_inst','n_bombas','tot_acum','hora_tot','q_total','tot_acum_tarde','hora_tot_tarde','q_total_tarde','obs'];
 
-/* ---------- tabs ---------- */
-document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['a','b','c','d','e'].forEach(t=>$('tab-'+t).hidden=t!==b.dataset.t);
-}));
+const SEED = [{"data":"2026-08-01","hora":"05:31","cota":91.11,"pct":31.88,"variacao":-2,"var_acum":5.3,"vol_acum":2137841600,"q_jaguaribe":12.018,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":36609084,"med2":16384761,"hora_rec":"05:31","vol_24h":734844,"q_trecho1":8.499,"q_inst":12.434,"n_bombas":4,"tot_acum":3964895,"hora_tot":"05:50","q_total":24.3,"tot_acum_tarde":4873030,"hora_tot_tarde":"","q_total_tarde":15.72,"horas_total":65.5,"obs":"hora macro inválida na origem (1904-09-16 00:00:00)","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"5:30","rpm":593},{"mb":"MB-03","horas":"3:00","rpm":582},{"mb":"MB-04","horas":"17:00","rpm":593},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":582},{"mb":"MB-07","horas":"20:00","rpm":582},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-02","hora":"05:35","cota":91.1,"pct":31.85,"variacao":-1,"var_acum":5.29,"vol_acum":2135896000,"q_jaguaribe":11.987,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":36969736,"med2":16756815,"hora_rec":"05:35","vol_24h":732706,"q_trecho1":8.457,"q_inst":12.47,"n_bombas":4,"tot_acum":5730010,"hora_tot":"05:49","q_total":24.18,"tot_acum_tarde":6649815,"hora_tot_tarde":"17:36","q_total_tarde":12.41,"horas_total":82,"obs":"","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"3:00","rpm":582},{"mb":"MB-03","horas":"10:00","rpm":593},{"mb":"MB-04","horas":"22:30","rpm":577},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"27:00","rpm":582},{"mb":"MB-07","horas":"19:30","rpm":582},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-03","hora":"05:30","cota":91.09,"pct":31.82,"variacao":-1,"var_acum":5.28,"vol_acum":2133950400,"q_jaguaribe":11.889,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":37329240,"med2":17123910,"hora_rec":"05:30","vol_24h":726599,"q_trecho1":8.439,"q_inst":12.38,"n_bombas":4,"tot_acum":7481464,"hora_tot":"05:45","q_total":24.27,"tot_acum_tarde":8401471,"hora_tot_tarde":"17:20","q_total_tarde":12.42,"horas_total":66.5,"obs":"","bombas":[{"mb":"MB-01","horas":"6:30","rpm":582},{"mb":"MB-02","horas":"20:00","rpm":582},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":582},{"mb":"MB-07","horas":"20:00","rpm":582},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-04","hora":"05:30","cota":91.07,"pct":31.76,"variacao":-2,"var_acum":5.26,"vol_acum":2130059200,"q_jaguaribe":11.83,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":37703164,"med2":17490724,"hora_rec":"05:30","vol_24h":740738,"q_trecho1":8.573,"q_inst":12.326,"n_bombas":4,"tot_acum":9217368,"hora_tot":"05:23","q_total":24.35,"tot_acum_tarde":10161931,"hora_tot_tarde":"17:12","q_total_tarde":12.35,"horas_total":66,"obs":"","bombas":[{"mb":"MB-01","horas":"0:55","rpm":594},{"mb":"MB-02","horas":"13:40","rpm":577},{"mb":"MB-03","horas":"12:30","rpm":577},{"mb":"MB-04","horas":"3:00","rpm":583},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"15:55","rpm":583},{"mb":"MB-07","horas":"20:00","rpm":583},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-05","hora":"05:31","cota":91.06,"pct":31.73,"variacao":-1,"var_acum":5.25,"vol_acum":2128113600,"q_jaguaribe":11.847,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":38059718,"med2":17864814,"hora_rec":"05:31","vol_24h":730644,"q_trecho1":8.451,"q_inst":12.237,"n_bombas":4,"tot_acum":10969903,"hora_tot":"05:22","q_total":23.72,"tot_acum_tarde":11910020,"hora_tot_tarde":"17:51","q_total_tarde":12.01,"horas_total":65,"obs":"","bombas":[{"mb":"MB-01","horas":"5:50","rpm":594},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"3:00","rpm":583},{"mb":"MB-04","horas":"17:00","rpm":594},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":583},{"mb":"MB-07","horas":"19:10","rpm":583},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-06","hora":"05:34","cota":91.05,"pct":31.71,"variacao":-1,"var_acum":5.24,"vol_acum":2126168000,"q_jaguaribe":11.899,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":38412607,"med2":18232828,"hora_rec":"05:34","vol_24h":720903,"q_trecho1":8.326,"q_inst":12.188,"n_bombas":4,"tot_acum":12718701,"hora_tot":"05:23","q_total":23.99,"tot_acum_tarde":13699853,"hora_tot_tarde":"17:37","q_total_tarde":11.87,"horas_total":67.22,"obs":"","bombas":[{"mb":"MB-01","horas":"3:00","rpm":583},{"mb":"MB-02","horas":"0:43","rpm":594},{"mb":"MB-03","horas":"17:00","rpm":594},{"mb":"MB-04","horas":"6:30","rpm":594},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":583},{"mb":"MB-07","horas":"20:00","rpm":583},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-07","hora":"05:34","cota":91.03,"pct":31.65,"variacao":-2,"var_acum":5.22,"vol_acum":2122276800,"q_jaguaribe":11.963,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":38788682,"med2":18611130,"hora_rec":"05:34","vol_24h":754377,"q_trecho1":8.731,"q_inst":12.196,"n_bombas":4,"tot_acum":14537737,"hora_tot":"05:48","q_total":24.41,"tot_acum_tarde":15467097,"hora_tot_tarde":"17:22","q_total_tarde":12.11,"horas_total":66,"obs":"","bombas":[{"mb":"MB-01","horas":"11:00","rpm":594},{"mb":"MB-02","horas":"12:00","rpm":594},{"mb":"MB-03","horas":"3:00","rpm":583},{"mb":"MB-04","horas":"8:25","rpm":594},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":583},{"mb":"MB-07","horas":"11:35","rpm":583},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-08","hora":"05:34","cota":91.01,"pct":31.59,"variacao":-2,"var_acum":5.2,"vol_acum":2118385600,"q_jaguaribe":11.934,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":39151303,"med2":18993812,"hora_rec":"05:34","vol_24h":745303,"q_trecho1":8.626,"q_inst":12.376,"n_bombas":4,"tot_acum":16300577,"hora_tot":"05:37","q_total":23.56,"tot_acum_tarde":17254848,"hora_tot_tarde":"17:37","q_total_tarde":12,"horas_total":66,"obs":"","bombas":[{"mb":"MB-01","horas":"3:00","rpm":583},{"mb":"MB-02","horas":"8:40","rpm":577},{"mb":"MB-03","horas":"17:00","rpm":577},{"mb":"MB-04","horas":"6:00","rpm":594},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":583},{"mb":"MB-07","horas":"11:20","rpm":583},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-09","hora":"05:31","cota":91,"pct":31.56,"variacao":-1,"var_acum":5.19,"vol_acum":2116440000,"q_jaguaribe":11.834,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":39517435,"med2":19369938,"hora_rec":"05:31","vol_24h":742258,"q_trecho1":8.609,"q_inst":12.548,"n_bombas":4,"tot_acum":18078726,"hora_tot":"05:47","q_total":24.67,"tot_acum_tarde":19008853,"hora_tot_tarde":"","q_total_tarde":12.38,"horas_total":66,"obs":"hora macro inválida na origem (1900-01-12 09:07:12)","bombas":[{"mb":"MB-01","horas":"11:00","rpm":594},{"mb":"MB-02","horas":"12:00","rpm":594},{"mb":"MB-03","horas":"3:00","rpm":583},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":583},{"mb":"MB-07","horas":"20:00","rpm":583},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-10","hora":"05:34","cota":90.99,"pct":31.53,"variacao":-1,"var_acum":5.18,"vol_acum":2114564600,"q_jaguaribe":11.972,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":39889106,"med2":19738236,"hora_rec":"05:34","vol_24h":739969,"q_trecho1":8.547,"q_inst":12.335,"n_bombas":4,"tot_acum":19823218,"hora_tot":"05:24","q_total":23.88,"tot_acum_tarde":20806501,"hora_tot_tarde":"17:32","q_total_tarde":11.82,"horas_total":63,"obs":"","bombas":[{"mb":"MB-01","horas":"3:00","rpm":584},{"mb":"MB-02","horas":"3:00","rpm":594},{"mb":"MB-03","horas":"17:00","rpm":577},{"mb":"MB-04","horas":"12:00","rpm":577},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"19:00","rpm":584},{"mb":"MB-07","horas":"9:00","rpm":584},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-11","hora":"05:31","cota":90.98,"pct":31.5,"variacao":-1,"var_acum":5.17,"vol_acum":2112689200,"q_jaguaribe":12.134,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40256522,"med2":20111294,"hora_rec":"05:31","vol_24h":740474,"q_trecho1":8.588,"q_inst":9.335,"n_bombas":3,"tot_acum":21648376,"hora_tot":"05:52","q_total":21.09,"tot_acum_tarde":22236888,"hora_tot_tarde":"17:26","q_total_tarde":0.61,"horas_total":48.75,"obs":"","bombas":[{"mb":"MB-01","horas":"10:45","rpm":584},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"17:00","rpm":584},{"mb":"MB-07","horas":"17:00","rpm":584},{"mb":"MB-08","horas":"4:00","rpm":570}]},{"data":"2026-08-12","hora":"05:24","cota":90.97,"pct":31.48,"variacao":-1,"var_acum":5.16,"vol_acum":2110813800,"q_jaguaribe":3.589,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40476449,"med2":20308976,"hora_rec":"05:24","vol_24h":417609,"q_trecho1":4.857,"q_inst":3.244,"n_bombas":1,"tot_acum":22358321,"hora_tot":"05:13","q_total":3.76,"tot_acum_tarde":null,"hora_tot_tarde":"","q_total_tarde":null,"horas_total":6,"obs":"sem leitura da tarde","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"0:00","rpm":0},{"mb":"MB-08","horas":"6:00","rpm":570}]},{"data":"2026-08-13","hora":"05:31","cota":90.97,"pct":31.48,"variacao":0,"var_acum":5.16,"vol_acum":2110813800,"q_jaguaribe":1.116,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40481135,"med2":20313760,"hora_rec":"05:31","vol_24h":9470,"q_trecho1":0.109,"q_inst":0,"n_bombas":0,"tot_acum":22396664,"hora_tot":"05:40","q_total":0,"tot_acum_tarde":null,"hora_tot_tarde":"","q_total_tarde":null,"horas_total":0,"obs":"sem leitura da tarde","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"0:00","rpm":0},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-14","hora":"05:31","cota":90.96,"pct":31.45,"variacao":-1,"var_acum":5.15,"vol_acum":2108938400,"q_jaguaribe":0.22,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40481331,"med2":20313760,"hora_rec":"05:31","vol_24h":196,"q_trecho1":0.002,"q_inst":0,"n_bombas":0,"tot_acum":22396664,"hora_tot":"05:40","q_total":9.371,"tot_acum_tarde":null,"hora_tot_tarde":"","q_total_tarde":null,"horas_total":0,"obs":"sem leitura da tarde","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"0:00","rpm":0},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-15","hora":"05:30","cota":90.95,"pct":31.42,"variacao":-1,"var_acum":5.14,"vol_acum":2107063000,"q_jaguaribe":0,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40481331,"med2":20313906,"hora_rec":"05:30","vol_24h":146,"q_trecho1":0.002,"q_inst":0,"n_bombas":0,"tot_acum":22396664,"hora_tot":"06:00","q_total":0,"tot_acum_tarde":null,"hora_tot_tarde":"","q_total_tarde":null,"horas_total":0,"obs":"sem leitura da tarde","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"0:00","rpm":0},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-16","hora":"05:37","cota":90.94,"pct":31.39,"variacao":-1,"var_acum":5.13,"vol_acum":2105187600,"q_jaguaribe":0,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40481332,"med2":20313910,"hora_rec":"05:37","vol_24h":5,"q_trecho1":0,"q_inst":0,"n_bombas":0,"tot_acum":22396664,"hora_tot":"05:55","q_total":9.371,"tot_acum_tarde":null,"hora_tot_tarde":"","q_total_tarde":null,"horas_total":0,"obs":"sem leitura da tarde","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"0:00","rpm":0},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-17","hora":"05:30","cota":90.93,"pct":31.36,"variacao":-1,"var_acum":5.12,"vol_acum":2103312200,"q_jaguaribe":0,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40481333,"med2":20313920,"hora_rec":"05:30","vol_24h":11,"q_trecho1":0,"q_inst":0,"n_bombas":0,"tot_acum":22396664,"hora_tot":"05:55","q_total":9.371,"tot_acum_tarde":null,"hora_tot_tarde":"","q_total_tarde":null,"horas_total":0,"obs":"sem leitura da tarde","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"0:00","rpm":0},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-18","hora":"05:50","cota":90.91,"pct":31.31,"variacao":-2,"var_acum":5.1,"vol_acum":2099561400,"q_jaguaribe":0,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40481333,"med2":20313976,"hora_rec":"05:50","vol_24h":56,"q_trecho1":0.001,"q_inst":0,"n_bombas":0,"tot_acum":22396664,"hora_tot":"05:40","q_total":9.371,"tot_acum_tarde":22601285,"hora_tot_tarde":"17:32","q_total_tarde":11.57,"horas_total":14.33,"obs":"","bombas":[{"mb":"MB-01","horas":"1:30","rpm":590},{"mb":"MB-02","horas":"1:30","rpm":590},{"mb":"MB-03","horas":"4:20","rpm":585},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"4:00","rpm":585},{"mb":"MB-07","horas":"3:00","rpm":585},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-19","hora":"05:30","cota":90.9,"pct":31.28,"variacao":-1,"var_acum":5.09,"vol_acum":2097686000,"q_jaguaribe":7.324,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":40658186,"med2":20487900,"hora_rec":"05:30","vol_24h":353706,"q_trecho1":4.151,"q_inst":9.244,"n_bombas":3,"tot_acum":23390201,"hora_tot":"05:43","q_total":21.02,"tot_acum_tarde":24517024,"hora_tot_tarde":"17:21","q_total_tarde":19.51,"horas_total":75,"obs":"","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"17:00","rpm":585},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"25:00","rpm":588},{"mb":"MB-07","horas":"25:00","rpm":588},{"mb":"MB-08","horas":"8:00","rpm":588}]},{"data":"2026-08-20","hora":"06:15","cota":90.88,"pct":31.22,"variacao":-2,"var_acum":5.07,"vol_acum":2093935200,"q_jaguaribe":18.786,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":41026452,"med2":20828906,"hora_rec":"06:15","vol_24h":709272,"q_trecho1":7.96,"q_inst":12.451,"n_bombas":4,"tot_acum":25694638,"hora_tot":"05:39","q_total":31.6,"tot_acum_tarde":26886936,"hora_tot_tarde":"17:34","q_total_tarde":17.29,"horas_total":51.5,"obs":"","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"0:00","rpm":0},{"mb":"MB-03","horas":"6:30","rpm":599},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"15:00","rpm":585},{"mb":"MB-07","horas":"15:00","rpm":585},{"mb":"MB-08","horas":"15:00","rpm":585}]},{"data":"2026-08-21","hora":"05:31","cota":90.86,"pct":31.17,"variacao":-2,"var_acum":5.05,"vol_acum":2090184400,"q_jaguaribe":17.504,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":41398268,"med2":21160034,"hora_rec":"05:31","vol_24h":702944,"q_trecho1":8.392,"q_inst":12.501,"n_bombas":4,"tot_acum":27936693,"hora_tot":"05:42","q_total":28.86,"tot_acum_tarde":29177468,"hora_tot_tarde":"18:27","q_total_tarde":17.51,"horas_total":82,"obs":"","bombas":[{"mb":"MB-01","horas":"3:25","rpm":583},{"mb":"MB-02","horas":"10:55","rpm":590},{"mb":"MB-03","horas":"7:00","rpm":599},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"13:35","rpm":599},{"mb":"MB-07","horas":"22:05","rpm":590},{"mb":"MB-08","horas":"25:00","rpm":590}]},{"data":"2026-08-22","hora":"05:38","cota":90.84,"pct":31.11,"variacao":-2,"var_acum":5.03,"vol_acum":2086433600,"q_jaguaribe":17.24,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":41790450,"med2":21535264,"hora_rec":"05:38","vol_24h":767412,"q_trecho1":8.839,"q_inst":12.442,"n_bombas":4,"tot_acum":30197769,"hora_tot":"05:47","q_total":29.55,"tot_acum_tarde":31356641,"hora_tot_tarde":"17:17","q_total_tarde":17.82,"horas_total":51.5,"obs":"","bombas":[{"mb":"MB-01","horas":"9:30","rpm":590},{"mb":"MB-02","horas":"15:00","rpm":590},{"mb":"MB-03","horas":"7:05","rpm":590},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"15:00","rpm":590},{"mb":"MB-08","horas":"4:55","rpm":600}]},{"data":"2026-08-23","hora":"05:30","cota":90.83,"pct":31.09,"variacao":-1,"var_acum":5.02,"vol_acum":2084558200,"q_jaguaribe":17.091,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":42170998,"med2":21923302,"hora_rec":"05:30","vol_24h":768586,"q_trecho1":8.945,"q_inst":12.799,"n_bombas":4,"tot_acum":32450405,"hora_tot":"05:49","q_total":29.77,"tot_acum_tarde":33574032,"hora_tot_tarde":"17:39","q_total_tarde":25.76,"horas_total":66.5,"obs":"","bombas":[{"mb":"MB-01","horas":"20:00","rpm":590},{"mb":"MB-02","horas":"17:00","rpm":590},{"mb":"MB-03","horas":"9:30","rpm":590},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"0:00","rpm":0},{"mb":"MB-07","horas":"20:00","rpm":590},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-24","hora":"05:30","cota":90.82,"pct":31.06,"variacao":-1,"var_acum":5.01,"vol_acum":2082682800,"q_jaguaribe":17.097,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":42547489,"med2":22314822,"hora_rec":"05:30","vol_24h":768011,"q_trecho1":8.889,"q_inst":10.04,"n_bombas":3,"tot_acum":34685152,"hora_tot":"05:46","q_total":26.61,"tot_acum_tarde":35858845,"hora_tot_tarde":"17:31","q_total_tarde":17.34,"horas_total":64.57,"obs":"","bombas":[{"mb":"MB-01","horas":"11:01","rpm":590},{"mb":"MB-02","horas":"0:31","rpm":590},{"mb":"MB-03","horas":"19:31","rpm":589},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"14:00","rpm":589},{"mb":"MB-07","horas":"19:31","rpm":589},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-25","hora":"05:30","cota":90.8,"pct":31,"variacao":-2,"var_acum":4.99,"vol_acum":2078932000,"q_jaguaribe":17.285,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":42929966,"med2":22685544,"hora_rec":"05:30","vol_24h":753199,"q_trecho1":8.718,"q_inst":12.61,"n_bombas":4,"tot_acum":36922457,"hora_tot":"05:40","q_total":30.35,"tot_acum_tarde":38101745,"hora_tot_tarde":"17:20","q_total_tarde":16.8,"horas_total":66.5,"obs":"","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"12:00","rpm":599},{"mb":"MB-03","horas":"14:30","rpm":589},{"mb":"MB-04","horas":"7:40","rpm":599},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"12:20","rpm":589},{"mb":"MB-07","horas":"20:00","rpm":589},{"mb":"MB-08","horas":"0:00","rpm":0}]},{"data":"2026-08-26","hora":"06:34","cota":90.78,"pct":30.95,"variacao":-2,"var_acum":4.97,"vol_acum":2075181200,"q_jaguaribe":17.19,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":43332662,"med2":23096876,"hora_rec":"06:34","vol_24h":814028,"q_trecho1":9.021,"q_inst":12.608,"n_bombas":4,"tot_acum":39187084,"hora_tot":"05:40","q_total":29.32,"tot_acum_tarde":40347066,"hora_tot_tarde":"17:33","q_total_tarde":17.76,"horas_total":62.5,"obs":"","bombas":[{"mb":"MB-01","horas":"0:00","rpm":0},{"mb":"MB-02","horas":"9:30","rpm":589},{"mb":"MB-03","horas":"11:30","rpm":599},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":589},{"mb":"MB-07","horas":"20:00","rpm":589},{"mb":"MB-08","horas":"1:30","rpm":580}]},{"data":"2026-08-27","hora":"05:30","cota":90.76,"pct":30.89,"variacao":-2,"var_acum":4.95,"vol_acum":2071430400,"q_jaguaribe":17.348,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":43711762,"med2":23454888,"hora_rec":"05:30","vol_24h":737112,"q_trecho1":8.928,"q_inst":12.664,"n_bombas":4,"tot_acum":41457359,"hora_tot":"05:40","q_total":29.7,"tot_acum_tarde":42539353,"hora_tot_tarde":"17:23","q_total_tarde":0.741,"horas_total":63.75,"obs":"","bombas":[{"mb":"MB-01","horas":"5:10","rpm":599},{"mb":"MB-02","horas":"11:35","rpm":598},{"mb":"MB-03","horas":"3:25","rpm":599},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"16:25","rpm":598},{"mb":"MB-07","horas":"16:15","rpm":598},{"mb":"MB-08","horas":"10:55","rpm":598}]},{"data":"2026-08-28","hora":"05:46","cota":90.74,"pct":30.83,"variacao":-2,"var_acum":4.93,"vol_acum":2067679600,"q_jaguaribe":17.333,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":44106865,"med2":23818982,"hora_rec":"05:46","vol_24h":759197,"q_trecho1":8.69,"q_inst":12.446,"n_bombas":4,"tot_acum":43726007,"hora_tot":"05:53","q_total":29.95,"tot_acum_tarde":44877136,"hora_tot_tarde":"17:36","q_total_tarde":17.92,"horas_total":69.5,"obs":"","bombas":[{"mb":"MB-01","horas":"2:00","rpm":598},{"mb":"MB-02","horas":"19:00","rpm":589},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"11:30","rpm":589},{"mb":"MB-07","horas":"20:00","rpm":589},{"mb":"MB-08","horas":"17:00","rpm":580}]},{"data":"2026-08-29","hora":"05:30","cota":90.72,"pct":30.78,"variacao":-2,"var_acum":4.91,"vol_acum":2063928800,"q_jaguaribe":null,"q_jaguaribe_tipo":"","q_mandacaru":345,"med1":44476058,"med2":24171930,"hora_rec":"05:30","vol_24h":722141,"q_trecho1":8.452,"q_inst":12.86,"n_bombas":4,"tot_acum":45970973,"hora_tot":"05:51","q_total":29.5,"tot_acum_tarde":47129189,"hora_tot_tarde":"17:17","q_total_tarde":18.31,"horas_total":66.5,"obs":"","bombas":[{"mb":"MB-01","horas":"6:30","rpm":599},{"mb":"MB-02","horas":"17:00","rpm":599},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":589},{"mb":"MB-07","horas":"20:00","rpm":589},{"mb":"MB-08","horas":"3:00","rpm":589}]},{"data":"2026-08-30","hora":"05:33","cota":90.7,"pct":30.72,"variacao":-2,"var_acum":4.89,"vol_acum":2060178000,"q_jaguaribe":17.442,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":44866426,"med2":24534904,"hora_rec":"05:33","vol_24h":753342,"q_trecho1":8.701,"q_inst":12.28,"n_bombas":4,"tot_acum":48198333,"hora_tot":"05:31","q_total":29.66,"tot_acum_tarde":49418985,"hora_tot_tarde":"17:34","q_total_tarde":17.1,"horas_total":66.5,"obs":"","bombas":[{"mb":"MB-01","horas":"9:30","rpm":589},{"mb":"MB-02","horas":"9:00","rpm":589},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":589},{"mb":"MB-07","horas":"20:00","rpm":589},{"mb":"MB-08","horas":"8:00","rpm":589}]},{"data":"2026-08-31","hora":"05:30","cota":90.69,"pct":30.69,"variacao":-1,"var_acum":4.88,"vol_acum":2058302600,"q_jaguaribe":17.383,"q_jaguaribe_tipo":"ESTIMADO","q_mandacaru":345,"med1":45254623,"med2":24902360,"hora_rec":"05:30","vol_24h":755653,"q_trecho1":8.764,"q_inst":12.72,"n_bombas":4,"tot_acum":50460609,"hora_tot":"05:33","q_total":29.28,"tot_acum_tarde":51653421,"hora_tot_tarde":"17:13","q_total_tarde":16.27,"horas_total":67.5,"obs":"","bombas":[{"mb":"MB-01","horas":"12:30","rpm":598},{"mb":"MB-02","horas":"15:00","rpm":589},{"mb":"MB-03","horas":"0:00","rpm":0},{"mb":"MB-04","horas":"0:00","rpm":0},{"mb":"MB-05","horas":"0:00","rpm":0},{"mb":"MB-06","horas":"20:00","rpm":589},{"mb":"MB-07","horas":"20:00","rpm":589},{"mb":"MB-08","horas":"0:00","rpm":0}]}];
+let cfg = JSON.parse(localStorage.getItem('ro_cfg') || sessionStorage.getItem('ro_cfg') || 'null');
+let hist = [];        // leituras ordenadas por data asc
+let anterior = null;  // leitura imediatamente anterior à data do form
+let ch1, ch2;
 
-/* ---------- hydraulics ---------- */
-function manning(b,m,S,n,y){const A=(b+m*y)*y,P=b+2*y*Math.sqrt(1+m*m),R=A/P;return{A,P,R,T:b+2*m*y,Q:A*Math.pow(R,2/3)*Math.sqrt(S)/n};}
-function yn(Q,b,m,S,n){let lo=0.001,hi=15;for(let i=0;i<60;i++){const mid=(lo+hi)/2;(manning(b,m,S,n,mid).Q<Q)?lo=mid:hi=mid;}return (lo+hi)/2;}
-function canalParams(){return{b:num('bb'),m:num('bm'),S:num('bS'),n:num('bn'),H:num('bH')};}
-function nu(T){return 1.792e-6/(1+0.0337*T+0.000221*T*T);}
-function swamee(Re,eD){return 0.25/Math.pow(Math.log10(eD/3.7+5.74/Math.pow(Re,0.9)),2);}
-function sifao(Q){
-  const L=num('cL'),D=num('cD'),e=num('cE')/1000,K=num('cK'),dZ=num('cZ'),T=num('cT');
-  const A=Math.PI*D*D/4,V=Q/A,Re=V*D/nu(T),f=swamee(Re,e/D),hv=V*V/19.62;
-  const hf=f*L/D*hv,hl=K*hv,dH=hf+hl;
-  const c=canalParams(),yj=yn(Q,c.b,c.m,c.S,c.n),NAm=yj+dH-dZ;
-  return{A,V,Re,f,hv,hf,hl,dH,yj,NAm};
-}
+/* ===================== Utilidades ===================== */
+const $ = s => document.querySelector(s);
+const num = v => (v === '' || v == null || isNaN(+v)) ? null : +v;
+const fmt = (v, d=2) => v == null ? '—' : (+v).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d});
+const hmsToH = s => { if(!s) return 0; const [h,m,sg] = s.split(':').map(Number); return (h||0)+(m||0)/60+(sg||0)/3600; };
+const hToHms = h => { const t=Math.round(h*3600); return `${Math.floor(t/3600)}:${String(Math.floor(t%3600/60)).padStart(2,'0')}`; };
+const hoje = () => new Date().toLocaleDateString('sv-SE');
+function setStatus(on, txt){ $('#dot').className = 'dot ' + (on===null?'':on?'on':'off'); $('#statusTxt').textContent = txt; }
+function flash(el, txt, ok=true){ el.textContent = txt; el.className = 'msg ' + (ok?'ok':'erro'); }
 
-/* ---------- B ---------- */
-function calcB(){
-  const c=canalParams();
-  const Q=num('bQ'),y=yn(Q,c.b,c.m,c.S,c.n),r=manning(c.b,c.m,c.S,c.n,y);
-  $('bOut').innerHTML=`<div>Altura normal yn</div><div>${f2(y)} m</div><div>Largura superficial T</div><div>${f2(r.T)} m</div><div>Área molhada A</div><div>${f2(r.A)} m²</div><div>Raio hidráulico R</div><div>${f2(r.R,3)} m</div><div>Velocidade média</div><div>${f2(Q/r.A)} m/s</div><div>Froude</div><div>${f2(Q/r.A/Math.sqrt(9.81*r.A/r.T),3)}</div>`;
-  const y2=num('by'),r2=manning(c.b,c.m,c.S,c.n,y2);
-  $('bOut2').innerHTML=`<div>Q estimada</div><div>${f2(r2.Q)} m³/s</div><div>Área</div><div>${f2(r2.A)} m²</div><div>Velocidade</div><div>${f2(r2.Q/r2.A)} m/s</div><div>± 5 % (incerteza de n)</div><div>${f2(r2.Q*0.95)} – ${f2(r2.Q*1.05)}</div>`;
-  $('bTab').innerHTML=[19,15,12,10,9.5,9].map(q=>{const yy=yn(q,c.b,c.m,c.S,c.n),rr=manning(c.b,c.m,c.S,c.n,yy);return`<tr><td>${f2(q,1)}</td><td class="num">${f2(yy)}</td><td class="num">${f2(rr.T)}</td><td class="num">${f2(rr.A)}</td><td class="num">${f2(q/rr.A)}</td><td class="num">${f2(2.70-yy)}</td></tr>`;}).join('');
-  drawSec(c,y);
+/* ===================== API (Apps Script) ===================== */
+async function api(action, payload={}){
+  if(!cfg?.url) throw new Error('Configure a URL e a senha (botão Configurar).');
+  const body = JSON.stringify({action, senha: cfg.senha, ...payload});
+  const r = await fetch(cfg.url, {method:'POST', body, headers:{'Content-Type':'text/plain;charset=utf-8'}});
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.erro || 'Erro desconhecido');
+  return j.dados;
 }
-function drawSec(c,y){
-  const W=600,Hc=260,pad=30,top=c.H,scale=Math.min((W-2*pad)/(c.b+2*c.m*top),(Hc-70)/top);
-  const x0=W/2-(c.b/2+c.m*top)*scale,y0=Hc-40;
-  const pt=(x,yy)=>`${x0+x*scale},${y0-yy*scale}`;
-  const poly=`${pt(0,top)} ${pt(c.m*top,0)} ${pt(c.m*top+c.b,0)} ${pt(2*c.m*top+c.b,top)}`;
-  const wl=`${pt(c.m*(top-y),y)} ${pt(c.m*top,0)} ${pt(c.m*top+c.b,0)} ${pt(c.m*top+c.b+c.m*y,y)}`;
-  const na=(c.H-0.10-0.54);
-  $('sec').innerHTML=`<polygon points="${wl}" fill="#8FC3E8"/><polyline points="${poly}" fill="none" stroke="#3F4A55" stroke-width="3"/>
-  <line x1="${x0}" y1="${y0-na*scale}" x2="${x0+(c.b+2*c.m*top)*scale}" y2="${y0-na*scale}" stroke="#B23A2E" stroke-dasharray="6 4"/>
-  <text x="${x0+4}" y="${y0-na*scale-4}" font-size="11" fill="#B23A2E">NA máx 2,16 m</text>
-  <text x="${W/2}" y="${y0-y*scale-6}" font-size="12" text-anchor="middle" fill="#17232E">y = ${f2(y)} m</text>
-  <text x="${W/2}" y="${y0+18}" font-size="11" text-anchor="middle" fill="#5B6B7A">b = ${f2(c.b)} m · taludes ${c.m}H:1V · topo ${f2(c.b+2*c.m*top)} m</text>`;
-}
-['bb','bm','bS','bn','bH','bQ','by'].forEach(id=>$(id).addEventListener('input',()=>{calcB();calcC();stepRender();}));
-
-/* ---------- C ---------- */
-function calcC(){
-  const Q=num('cQ'),s=sifao(Q),NAmax=num('cNA');
-  $('cOut').innerHTML=`<div>Velocidade no tubo</div><div>${f2(s.V)} m/s</div><div>Reynolds</div><div>${(s.Re/1e6).toFixed(2)} × 10⁶</div><div>f (Swamee-Jain)</div><div>${s.f.toFixed(4)}</div><div>Perda distribuída</div><div>${f2(s.hf,3)} m</div><div>Perdas localizadas</div><div>${f2(s.hl,3)} m</div><div>ΔH total</div><div>${f2(s.dH,3)} m</div><div>NA jusante (yn do canal)</div><div>${f2(s.yj)} m</div><div>NA montante necessário</div><div>${f2(s.NAm)} m</div><div>Folga até NA máx.</div><div>${f2(NAmax-s.NAm)} m</div>`;
-  const v=$('cVer');
-  if(s.NAm>NAmax+0.10){v.className='verdict bad';v.textContent='Com estes parâmetros a linha nova só passa '+f2(Q,1)+' m³/s com o canal acima da descarga de segurança. Teste inviável – rever premissas ou a vazão.';}
-  else if(s.NAm>NAmax){v.className='verdict warn';v.textContent='NA de montante ultrapassa o operacional (2,16 m). Passa vazão, mas fora do critério recomendado.';}
-  else{v.className='verdict ok';v.textContent='Linha nova conduz '+f2(Q,1)+' m³/s com NA de montante dentro do operacional.';}
-  const vol=s.A*num('cL'),Qf=num('cQf');
-  $('cFill').innerHTML=`<div>Volume da linha</div><div>${f2(vol,0)} m³</div><div>Tempo de enchimento</div><div>${f2(vol/Qf/3600,1)} h</div><div>Velocidade de enchimento</div><div>${f2(Qf/s.A,3)} m/s</div>`;
-  drawCurve(NAmax);
-  const cap=num('cCap'),Qin=Q,Lc=num('cLc'),c=canalParams();
-  if(cap<Qin){const y1=yn(Qin,c.b,c.m,c.S,c.n),y2=NAmax+0.10,A1=manning(c.b,c.m,c.S,c.n,y1).A,A2=manning(c.b,c.m,c.S,c.n,y2).A,dV=(A2-A1)*Lc,t=dV/(Qin-cap);
-    $('cRem').innerHTML=`<div>Excesso a armazenar</div><div>${f2(Qin-cap)} m³/s</div><div>Volume até verter</div><div>${f2(dV,0)} m³</div><div>Tempo até a descarga de segurança</div><div>${f2(t/60,0)} min</div><div>Taxa média de subida</div><div>${f2((y2-y1)*100/(t/60),1)} cm/min</div>`;}
-  else $('cRem').innerHTML='<div>Capacidade ≥ vazão afluente</div><div>sem remanso</div>';
-}
-function drawCurve(NAmax){
-  const cv=$('cv'),g=cv.getContext('2d'),W=cv.width,H=cv.height,p={l:60,r:20,t:20,b:40};
-  g.clearRect(0,0,W,H);
-  const qs=[],ys=[];for(let q=2;q<=14;q+=0.25){qs.push(q);ys.push(sifao(q).NAm);}
-  const ymax=Math.max(2.8,...ys)*1.05,x=q=>p.l+(q-2)/12*(W-p.l-p.r),y=v=>H-p.b-v/ymax*(H-p.t-p.b);
-  g.strokeStyle='#C9D3DC';g.lineWidth=1;g.font='12px system-ui';g.fillStyle='#5B6B7A';
-  for(let v=0;v<=ymax;v+=0.5){g.beginPath();g.moveTo(p.l,y(v));g.lineTo(W-p.r,y(v));g.stroke();g.fillText(v.toFixed(1)+' m',8,y(v)+4);}
-  for(let q=2;q<=14;q+=2){g.fillText(q+' m³/s',x(q)-18,H-14);}
-  g.strokeStyle='#B23A2E';g.setLineDash([6,4]);g.beginPath();g.moveTo(p.l,y(NAmax));g.lineTo(W-p.r,y(NAmax));g.stroke();g.setLineDash([]);
-  g.strokeStyle='#1D6FB0';g.lineWidth=2.5;g.beginPath();qs.forEach((q,i)=>i?g.lineTo(x(q),y(ys[i])):g.moveTo(x(q),y(ys[i])));g.stroke();
-  const Q=num('cQ'),s=sifao(Q);g.fillStyle='#C63D2F';g.beginPath();g.arc(x(Q),y(s.NAm),6,0,7);g.fill();
-  g.fillStyle='#17232E';g.fillText(`${f2(Q,1)} m³/s → NA ${f2(s.NAm)} m`,x(Q)+10,y(s.NAm)-8);
-}
-['cL','cD','cE','cK','cZ','cQ','cNA','cT','cQf','cCap','cLc'].forEach(id=>$(id).addEventListener('input',()=>{calcC();stepRender();}));
-
-/* ---------- A : steps ---------- */
-const STEPS=[
- {t:'Preparar seções de medição e instalar réguas',s:'≥ 20 m das caixas; deslocar se houver turbulência.',st:{c1:1,c2:0,s1:1,s2:0,ens:1,fill:0,split:0,adcp:0,reg:1,note:'Situação de partida: linha existente em operação, linha nova isolada por ensecadeiras. Réguas a ≥ 20 m das caixas, montante e jusante.'}},
- {t:'Remover ensecadeiras e encher a linha nova',s:'Não consta da Nota. Enchimento lento, ventosas abertas.',gap:1,st:{c1:1,c2:0,s1:1,s2:0,ens:0,fill:1,split:0,adcp:0,reg:1,note:'Etapa ausente na Nota. A linha nova (DN 2500) precisa ser enchida com vazão controlada e ter o ar purgado antes de qualquer manobra. Ver tempo estimado no painel “Sifão”.'}},
- {t:'Estabilizar a vazão de teste na entrada do sifão',s:'Q = 9,5 m³/s + Σ tomadas, controlada na saída do Curral Velho.',st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:0,reg:1,note:'Duas linhas abertas, cada uma com cerca de metade da vazão. O ajuste é feito no ponto de controle da COGERH e leva horas para se propagar e estabilizar ao longo do canal.'}},
- {t:'Medições de verificação (ADCP)',s:'Montante e jusante; confirmar vazão constante.',st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:1,reg:1,note:'Travessias recíprocas nas duas seções. A diferença montante − jusante já revela tomadas não compensadas ou vazamentos.'}},
- {t:'Fechar comporta de montante da linha antiga',s:'Manobra gradual; a vazão migra para a linha nova.',st:{c1:0,c2:1,s1:1,s2:1,ens:0,fill:1,split:1,adcp:0,reg:1,note:'Fechamento lento da Comporta 1. A partir daqui a linha nova recebe toda a vazão afluente; observar as réguas de montante durante a manobra.'}},
- {t:'Fechar stop-log de jusante e verificar estanqueidade da linha antiga',s:'Não consta da Nota: vazamento pelo stop-log contamina a medição.',gap:1,st:{c1:0,c2:1,s1:0,s2:1,ens:0,fill:1,split:1,adcp:0,reg:1,note:'Etapa ausente na Nota. Com a linha antiga fechada nas duas pontas, confirmar que não há passagem (nível estático na caixa, ausência de fluxo na saída). Sem isso a medição de jusante não prova nada.'}},
- {t:'Manter a linha nova isolada por ≥ 2 h',s:'Réguas a cada 15–20 min; critério de abortar por NA.',st:{c1:0,c2:1,s1:0,s2:1,ens:0,fill:1,split:1,adcp:0,reg:1,clock:1,note:'Período de observação. Se o NA de montante subir continuamente (barra abaixo), a linha nova não está aceitando a vazão – abortar antes de atingir a descarga de segurança (2,26 m).'}},
- {t:'Medições definitivas com a linha nova isolada',s:'Seção de jusante prioritária; ≥ 4 travessias.',st:{c1:0,c2:1,s1:0,s2:1,ens:0,fill:1,split:1,adcp:1,reg:1,note:'Registrar no painel “Registro e aceite”. Além de Q ≥ 9,5 m³/s, anotar o NA de montante: é ele que diz se o sifão conduz a vazão dentro da perda de carga aceitável.'}},
- {t:'Reabrir a linha antiga e devolver o sistema à operação',s:'Não consta da Nota.',gap:1,st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:0,reg:1,note:'Etapa ausente na Nota. Reabertura gradual e comunicação à COGERH para reajuste da vazão de controle.'}},
- {t:'Analisar resultados e emitir relatório de comprovação',s:'Repetir o ciclo nos outros cinco sifões.',st:{c1:1,c2:1,s1:1,s2:1,ens:0,fill:1,split:0.5,adcp:0,reg:1,note:'Relatório por sifão: Q jusante, Q montante, NA montante/jusante, ΔH observado, dispersão das travessias, tomadas compensadas.'}}
-];
-let cur=0,clockT=null,clockStart=0;
-const ol=$('steps');
-STEPS.forEach((s,i)=>{const li=document.createElement('li');li.innerHTML=`${s.t}<small>${s.s}</small>`;if(s.gap)li.classList.add('gap');li.addEventListener('click',()=>{cur=i;stepRender();});ol.appendChild(li);});
-function setFlow(id,q,base){const el=$(id);el.classList.toggle('off',q<=0.01);el.classList.toggle('slow',q>0.01&&q<base*0.7);}
-function stepRender(){
-  const st=STEPS[cur].st,Q=num('aQ'),fr=num('aFr');
-  [...ol.children].forEach((li,i)=>{li.classList.toggle('on',i===cur);li.classList.toggle('done',i<cur);});
-  $('prev').disabled=cur===0;$('next').disabled=cur===STEPS.length-1;
-  $('c1').setAttribute('fill',st.c1?'#fff':'#3F4A55');$('c2').setAttribute('fill',st.c2?'#fff':'#3F4A55');
-  $('s1').setAttribute('fill',st.s1?'#fff':'#3F4A55');$('s2').setAttribute('fill',st.s2?'#fff':'#3F4A55');
-  $('e1').style.opacity=$('e2').style.opacity=st.ens?1:0;$('legEns').style.opacity=st.ens?1:0;
-  $('fill2').setAttribute('width',st.fill?260:0);
-  $('adcp').style.opacity=st.adcp?1:0;$('reg').style.opacity=st.reg?1:0;
-  const qm=(st.c1||st.c2)?Q:0;
-  let q2=0,q1=0;
-  if(st.c2&&st.s2&&st.c1&&st.s1){q2=Q*st.split;q1=Q-q2;}
-  else if(st.c2&&st.s2){q2=Q*fr;q1=st.c1?Q-q2:0;}
-  else if(st.c1&&st.s1){q1=Q;}
-  const qj=q1+q2;
-  setFlow('fm',qm,Q);setFlow('f1',q1,Q);setFlow('f2',q2,Q);setFlow('fj',qj,Q);
-  $('f2').setAttribute('stroke',q2>0?'#C63D2F':'#1D6FB0');
-  $('qm').textContent='Q montante '+f2(qm,1)+' m³/s';$('q1').textContent='Q tubo 1 '+f2(q1,1)+' m³/s';$('q2').textContent='Q tubo 2 '+f2(q2,1)+' m³/s';$('qj').textContent='Q jusante '+f2(qj,1)+' m³/s';
-  const c=canalParams();
-  let NAj=qj>0?yn(qj,c.b,c.m,c.S,c.n):yn(Q,c.b,c.m,c.S,c.n)*0.9;
-  let NAm=NAj;
-  if(q2>0){const s=sifao(q2);NAm=Math.max(NAj,s.NAm);}else if(q1>0){NAm=NAj+0.05;}
-  if(!(st.c1||st.c2)) NAm=yn(Q,c.b,c.m,c.S,c.n);
-  const H=c.H;
-  $('barM').style.width=Math.min(100,NAm/H*100)+'%';$('barJ').style.width=Math.min(100,NAj/H*100)+'%';
-  $('barM').style.background=NAm>2.16?'#B23A2E':'#1D6FB0';
-  $('txtM').textContent=f2(NAm)+' m'+(NAm>2.16?' – acima do NA máx.':'');$('txtJ').textContent=f2(NAj)+' m';
-  $('barF').style.width=(st.fill?100:0)+'%';$('txtF').textContent=st.fill?'linha cheia':'linha isolada / vazia';
-  const n=$('stepnote');n.className='stepnote'+(STEPS[cur].gap?'':' plain');n.textContent=st.note;
-  clearInterval(clockT);
-  if(st.clock){clockStart=Date.now();$('clocklbl').textContent='tempo simulado (1 s = 1 min)';tick();clockT=setInterval(tick,1000);}
-  else{$('clock').textContent='–';$('clocklbl').textContent='';}
-}
-function tick(){const m=Math.floor((Date.now()-clockStart)/1000);$('clock').textContent=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');$('clocklbl').textContent=m>=120?'2 h cumpridas – pode medir':'tempo simulado (1 s = 1 min) – mínimo 02:00';}
-$('prev').addEventListener('click',()=>{cur=Math.max(0,cur-1);stepRender();});
-$('next').addEventListener('click',()=>{cur=Math.min(STEPS.length-1,cur+1);stepRender();});
-['aQ','aFr'].forEach(id=>$(id).addEventListener('input',stepRender));
-
-/* ---------- D ---------- */
-let rows=[];
-function addRow(r){rows.push(r||{sec:'jus',dir:'ida',dur:300,q:''});renderRows();}
-function renderRows(){
-  $('dRows').innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td><select data-i="${i}" data-k="sec"><option value="jus"${r.sec==='jus'?' selected':''}>Jusante</option><option value="mon"${r.sec==='mon'?' selected':''}>Montante</option></select></td><td><select data-i="${i}" data-k="dir"><option value="ida"${r.dir==='ida'?' selected':''}>Ida (ME→MD)</option><option value="volta"${r.dir==='volta'?' selected':''}>Volta (MD→ME)</option></select></td><td class="num"><input type="number" data-i="${i}" data-k="dur" value="${r.dur}" step="10"></td><td class="num"><input type="number" data-i="${i}" data-k="q" value="${r.q}" step="0.01"></td><td><button class="btn" data-del="${i}">×</button></td></tr>`).join('');
-  $('dRows').querySelectorAll('input,select').forEach(el=>el.addEventListener('input',e=>{rows[+el.dataset.i][el.dataset.k]=el.dataset.k==='sec'||el.dataset.k==='dir'?el.value:parseFloat(el.value);calcD();}));
-  $('dRows').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{rows.splice(+b.dataset.del,1);renderRows();}));
-  calcD();
-}
-function stats(sec){
-  const v=rows.filter(r=>r.sec===sec&&r.q>0);const n=v.length;if(!n)return null;
-  const mean=v.reduce((a,r)=>a+r.q,0)/n,sd=n>1?Math.sqrt(v.reduce((a,r)=>a+(r.q-mean)**2,0)/(n-1)):0;
-  return{n,mean,cv:sd/mean*100,dur:v.reduce((a,r)=>a+(r.dur||0),0),ida:v.filter(r=>r.dir==='ida').length,volta:v.filter(r=>r.dir==='volta').length};
-}
-function kvStats(s){if(!s)return'<div>Sem travessias</div><div>–</div>';return`<div>Travessias</div><div>${s.n} (${s.ida} ida / ${s.volta} volta)</div><div>Duração total</div><div>${s.dur} s</div><div>Q média</div><div>${f2(s.mean)} m³/s</div><div>Coef. de variação</div><div>${f2(s.cv,1)} %</div>`;}
-function calcD(){
-  const Q=num('dQ'),tom=num('dTom'),Qc=num('dQc'),alvo=Q+tom,dev=(Qc-alvo)/alvo*100;
-  $('dCtl').innerHTML=`<div>Q de controle necessária</div><div>${f2(alvo)} m³/s</div><div>Desvio medido</div><div>${f2(dev,1)} % (${f2((Qc-alvo)*1000,0)} l/s)</div><div>Q que chega ao sifão (estimada)</div><div>${f2(Qc-tom)} m³/s</div>`;
-  const lo=alvo*0.90,hi=alvo*1.10,px=v=>(v-lo)/(hi-lo)*100;
-  $('tol').innerHTML=`<span class="band5" style="left:${px(alvo*.95)}%;width:${px(alvo*1.05)-px(alvo*.95)}%"></span><span class="band2" style="left:${px(alvo*.98)}%;width:${px(alvo*1.02)-px(alvo*.98)}%"></span><span class="pt" style="left:${Math.max(0,Math.min(100,px(Qc)))}%"></span><span class="tick" style="left:${px(alvo)}%">${f2(alvo)}</span><span class="tick" style="left:${px(alvo*.95)}%">−5 %</span><span class="tick" style="left:${px(alvo*1.05)}%">+5 %</span>`;
-  const sj=stats('jus'),sm=stats('mon');
-  $('dJus').innerHTML=kvStats(sj);$('dMon').innerHTML=kvStats(sm);
-  const NAm=num('dNAm'),NAj=num('dNAj'),NAmax=num('dNAmax'),T=num('dT'),est=$('dEst').value==='1';
-  const chk=[
-   ['Q média de jusante ≥ 9,5 m³/s',sj?sj.mean>=9.5:null,sj?f2(sj.mean)+' m³/s':'sem dado'],
-   ['Mínimo 4 travessias recíprocas a jusante',sj?sj.n>=4&&sj.ida>=2&&sj.volta>=2:null,sj?`${sj.n} (${sj.ida}/${sj.volta})`:'sem dado'],
-   ['Duração total ≥ 720 s a jusante',sj?sj.dur>=720:null,sj?sj.dur+' s':'sem dado'],
-   ['Coef. de variação ≤ 5 %',sj?sj.cv<=5:null,sj?f2(sj.cv,1)+' %':'sem dado'],
-   ['Balanço montante − jusante ≤ 5 % (se medido)',sm&&sj?Math.abs(sm.mean-sj.mean)/sj.mean<=0.05:true,sm&&sj?f2((sm.mean-sj.mean)/sj.mean*100,1)+' %':'não medido'],
-   ['NA de montante ≤ NA máx. de operação',NAm<=NAmax,f2(NAm)+' / '+f2(NAmax)+' m'],
-   ['ΔH observado (NA mont − NA jus)',true,f2(NAm-NAj)+' m – comparar com ΔH de projeto (não informado)'],
-   ['Linha antiga fechada por ≥ 120 min',T>=120,T+' min'],
-   ['Estanqueidade da linha antiga verificada',est,est?'sim':'não']
-  ];
-  $('dChk').innerHTML=chk.map(c=>`<tr><td>${c[0]}</td><td class="num">${c[2]}</td><td style="width:90px;font-weight:600;color:${c[1]===null?'#5B6B7A':c[1]?'#2C7A4B':'#B23A2E'}">${c[1]===null?'pendente':c[1]?'atende':'não atende'}</td></tr>`).join('');
-  const v=$('dVer'),fail=chk.filter(c=>c[1]===false).length,pend=chk.filter(c=>c[1]===null).length;
-  if(pend){v.className='verdict';v.textContent='Aguardando travessias de jusante para emitir veredito.';}
-  else if(fail){v.className='verdict bad';v.textContent=`Não aprovado: ${fail} condição(ões) não atendida(s).`;}
-  else{v.className='verdict ok';v.textContent='Aprovado: a linha nova conduz ≥ 9,5 m³/s isoladamente, com dispersão e nível de montante dentro dos limites.';}
-}
-$('dAdd').addEventListener('click',()=>addRow());
-$('dClr').addEventListener('click',()=>{rows=[];renderRows();});
-$('dDemo').addEventListener('click',()=>{rows=[
- {sec:'jus',dir:'ida',dur:210,q:9.71},{sec:'jus',dir:'volta',dur:220,q:9.62},{sec:'jus',dir:'ida',dur:205,q:9.58},{sec:'jus',dir:'volta',dur:215,q:9.66},
- {sec:'mon',dir:'ida',dur:200,q:9.80},{sec:'mon',dir:'volta',dur:210,q:9.74}];renderRows();});
-['dQ','dTom','dQc','dNAm','dNAj','dNAmax','dT','dEst'].forEach(id=>$(id).addEventListener('input',calcD));
-
-/* ---------- Help (markdown embutido) ---------- */
-const HELP_MD="# Descrição da demonstração — Teste de vazão da 2ª linha dos sifões, Lote 4 (Eixão das Águas)\n\nNota Técnica CCEA/Tri-Stars, ago/2026, rev. 00\n**Aviso do cabeçalho:** valores editáveis; os parâmetros dos sifões (L, ΔH) são ilustrativos. (não há dados do de projeto)\n\nCinco abas de navegação: **Como o teste ocorre · Canal (Manning) · Sifão (perda de carga) · Registro e aceite · Ressalvas à Nota**. \n\nTodas as abas compartilham o mesmo motor hidráulico: alterar um parâmetro do canal ou do sifão recalcula simultaneamente a simulação da aba 1, a tabela da aba 2 e a curva da aba 3.\n\n\\---\n\n## 1\\. Aba \"Como o teste ocorre\"\n\n### 1.1 O que se vê\n\n**Planta esquemática (SVG animado)** de um dos seis sifões, da esquerda para a direita:\n\n* **Canal de montante** (trapézio azul-claro) → **Caixa de entrada** (retângulo cinza) com **Comporta 1** e **Comporta 2**.\n* Duas tubulações paralelas: **Tubo 1ª etapa – DN 2500 – linha existente** (contorno azul) e **Tubo 2ª etapa – DN 2500 – linha em teste** (contorno vermelho). O tubo novo tem um preenchimento rosado que aparece quando a linha está cheia.\n* **Caixa de saída** com **Stop-log 1** e **Stop-log 2** → **Canal de jusante**.\n* **Ensecadeiras de alvenaria** (blocos marrons) nas duas extremidades do tubo novo, visíveis só na situação inicial.\n* Duas **seções de medição** em linha tracejada âmbar: \"Seção montante (≥ 20 m)\" e \"Seção jusante (≥ 20 m) – prioritária\". Nelas surgem ícones **ADCP** (círculos âmbar) e **réguas** conforme a etapa.\n* Setas de fluxo animadas (tracejado em movimento) no canal de montante, em cada tubo e no canal de jusante. A animação para (e a seta fica esmaecida) quando a vazão é zero; fica lenta quando a vazão é < 70 % da vazão de teste. A seta do tubo novo fica vermelha quando ele conduz água.\n* Legendas numéricas sob a planta: **Q montante, Q tubo 1, Q tubo 2, Q jusante** (m³/s), atualizadas a cada etapa.\n\n**Três barras de nível** abaixo da planta (escala 0–2,80 m = altura da obra; marca vermelha em 2,16 m = NA máximo de operação):\n\n1. **NA canal de montante (yn + remanso do sifão)** — fica vermelha se ultrapassar 2,16 m.\n2. **NA canal de jusante**.\n3. **Enchimento da linha nova** — \"linha isolada / vazia\" ou \"linha cheia\".\n\n**Nota da etapa** (caixa abaixo das barras): azul para etapas previstas na Nota Técnica; âmbar para etapas acrescentadas.\n\n**Painel lateral \"Etapas\"**: lista numerada de 10 passos, com botões **Anterior / Próxima etapa**, um **relógio simulado** (só ativo na etapa 7) e dois campos editáveis: **Q de teste na entrada** (padrão 9,5 m³/s) e **Fração para a linha nova ao fechar a antiga** (padrão 1,0). Etapas com borda âmbar à esquerda = não constam da Nota.\n\n### 1.2 Sequência das 10 etapas (estado do esquema em cada uma)\n\n|#|Etapa|Estado do sifão|O que muda na tela|\n|-|-|-|-|\n|1|**Preparar seções de medição e instalar réguas** (≥ 20 m das caixas; deslocar se houver turbulência)|Comporta 1 e Stop-log 1 abertos; Comporta 2 e Stop-log 2 fechados; ensecadeiras presentes; linha nova vazia|Toda a vazão (9,5) passa pelo tubo 1. Réguas visíveis. Nota: \"linha existente em operação, linha nova isolada por ensecadeiras\".|\n|2|**Remover ensecadeiras e encher a linha nova** ⚠ *não consta da Nota*|Ensecadeiras somem; tubo novo fica preenchido|Barra \"Enchimento\" vai a 100 %. Nota: enchimento com vazão controlada, ventosas abertas, purga de ar antes de qualquer manobra; tempo estimado no painel \"Sifão\".|\n|3|**Estabilizar a vazão de teste na entrada do sifão** (Q = 9,5 + Σ tomadas, controlada na saída do Curral Velho)|Ambas as comportas e ambos os stop-logs abertos|Vazão dividida ≈ 50/50 (4,75 + 4,75). Nota: o ajuste no ponto de controle da COGERH leva horas para se propagar e estabilizar.|\n|4|**Medições de verificação (ADCP)**|Idem etapa 3|Ícones ADCP aparecem nas duas seções. Nota: travessias recíprocas; a diferença montante − jusante revela tomadas não compensadas ou vazamentos.|\n|5|**Fechar comporta de montante da linha antiga** (manobra gradual)|Comporta 1 fechada (preta); resto aberto|Vazão migra para o tubo 2 (Q tubo 1 = 0; Q tubo 2 = 9,5 × fração). NA montante passa a ser calculado pela perda de carga do sifão. Nota: observar réguas de montante durante a manobra.|\n|6|**Fechar stop-log de jusante e verificar estanqueidade da linha antiga** ⚠ *não consta da Nota*|Comporta 1 e Stop-log 1 fechados; linha antiga isolada nas duas pontas|Nota: confirmar nível estático na caixa e ausência de fluxo na saída — \"sem isso a medição de jusante não prova nada\".|\n|7|**Manter a linha nova isolada por ≥ 2 h** (réguas a cada 15–20 min; critério de abortar por NA)|Idem etapa 6|**Relógio simulado** começa a contar (1 s = 1 min). Rótulo \"mínimo 02:00\"; aos 120 min muda para \"2 h cumpridas – pode medir\". Nota: se NA de montante subir continuamente, a linha nova não aceita a vazão — abortar antes da descarga de segurança (2,26 m).|\n|8|**Medições definitivas com a linha nova isolada** (jusante prioritária; ≥ 4 travessias)|Idem|ADCP visível. Nota: registrar na aba \"Registro e aceite\"; anotar NA de montante, pois é ele que diz se o sifão conduz a vazão dentro da perda de carga aceitável.|\n|9|**Reabrir a linha antiga e devolver o sistema à operação** ⚠ *não consta da Nota*|Tudo aberto; vazão volta a 50/50|Nota: reabertura gradual e comunicação à COGERH para reajuste da vazão de controle.|\n|10|**Analisar resultados e emitir relatório de comprovação** (repetir nos outros cinco sifões)|Idem|Nota: relatório por sifão com Q jusante, Q montante, NA montante/jusante, ΔH observado, dispersão das travessias, tomadas compensadas.|\n\n### 1.3 Lógica por trás das barras de nível\n\n* **NA jusante** = altura normal de Manning para a vazão que sai do sifão (Q jusante).\n* **NA montante** = o maior entre NA jusante e o nível exigido pela perda de carga do sifão novo (quando o tubo 2 está conduzindo). Com as duas linhas abertas e vazão dividida, o remanso cai bastante (perda ∝ V²).\n* Com os parâmetros ilustrativos padrão, nas etapas 5–8 a barra de montante fica em **≈ 2,23 m, vermelha, \"acima do NA máx.\"** — a demonstração já nasce mostrando o problema central: passar 9,5 m³/s por uma única linha DN 2500 de 600 m exige mais carga do que o canal tolera.\n\n\\---\n\n## 2\\. Aba \"Canal (Manning)\"\n\n**Propósito:** reproduzir e conferir o Quadro 2 da Nota (b = 5,00 m; taludes 1,5H:1V; S = 0,00015; n = 1/70 ≈ 0,014286; altura da obra 2,80 m).\n\n**Painel esquerdo – Parâmetros e cálculos**\n\n* Campos editáveis: largura de fundo *b*, talude *m*, declividade *S*, *n* de Manning, altura da obra.\n* **Modo direto (vazão → altura normal):** para Q = 9,5 m³/s exibe yn, largura superficial T, área molhada A, raio hidráulico R, velocidade média e número de Froude. Padrão: **yn = 1,49 m; T = 9,47 m; A = 10,79 m²; V = 0,88 m/s**.\n* **Modo inverso (leitura de régua → vazão):** para y = 1,49 m devolve **Q ≈ 9,48 m³/s**, área, velocidade e a faixa **± 5 %** (incerteza de *n*) — ferramenta para conferir o ADCP em campo com a régua.\n\n**Painel direito – Seção transversal e tabela**\n\n* Desenho da seção trapezoidal com lâmina d'água em azul, linha tracejada vermelha em **NA máx 2,16 m**, e legenda \"b = 5,00 m · taludes 1,5H:1V · topo 13,40 m\".\n* Tabela (Q; yn; T; A; V; revanche para 2,70 m):\n\n|Q|yn|T|A|V|Revanche p/ 2,70|\n|-|-|-|-|-|-|\n|19,0|2,16|11,48|17,78|1,07|0,54|\n|15,0|1,91|10,72|14,98|1,00|0,79|\n|12,0|1,69|10,08|12,76|0,94|1,01|\n|10,0|1,53|9,60|11,20|0,89|1,17|\n|9,5|1,49|9,47|10,79|0,88|1,21|\n|9,0|1,45|9,34|10,39|0,87|1,25|\n\n* **Conferência escrita na tela:** yn(19,0) = 2,16 m e yn(9,5) = 1,49 m — o Quadro 2 da Nota está correto. O que não fecha é a observação \"2,70 − 0,64\" do Quadro 1 (dá 2,06 m; o correto é 2,80 − 0,64).\n\n\\---\n\n## 3\\. Aba \"Sifão (perda de carga)\"\n\n**Propósito:** responder à pergunta que a Nota não faz — *a que nível o canal de montante precisa subir para empurrar 9,5 m³/s pela linha nova sozinha, e isso cabe nos 2,16 m de operação?*\n\n**Painel esquerdo – Parâmetros do sifão (ilustrativos)**\n\n* Comprimento L = 600 m; D = 2,50 m; rugosidade ε = 0,10 mm (aço revestido); ΣK localizadas = 1,8; desnível de fundo ΔZ = 0,10 m; Q = 9,5 m³/s; NA máx. = 2,16 m; temperatura 27 °C.\n* Método: Darcy-Weisbach com *f* por **Swamee-Jain** e viscosidade cinemática em função da temperatura; perdas localizadas por ΣK·V²/2g; NA jusante = yn de Manning; **NA montante necessário = yn + ΔH − ΔZ**.\n* Saída com os valores padrão: **V = 1,94 m/s; Re ≈ 5,59 × 10⁶; f = 0,0108; perda distribuída 0,496 m; localizadas 0,344 m; ΔH total 0,840 m; NA jusante 1,49 m; NA montante necessário 2,23 m; folga até NA máx. = −0,07 m**.\n* **Veredito colorido** (três faixas):\n\n  * verde: NA montante ≤ 2,16 m → \"Linha nova conduz X m³/s com NA de montante dentro do operacional\";\n  * **âmbar (caso padrão):** \"NA de montante ultrapassa o operacional (2,16 m). Passa vazão, mas fora do critério recomendado\";\n  * vermelho: NA montante > 2,26 m → \"só passa X m³/s com o canal acima da descarga de segurança. Teste inviável\".\n* **Enchimento da linha nova:** para Qf = 0,5 m³/s → volume ≈ 2 945 m³, **≈ 1,6 h**, velocidade de enchimento 0,10 m/s. Observação: enchimento lento com ventosas abertas; a Nota não trata desta fase.\n\n**Painel direito – Curva e cenário de estrangulamento**\n\n* **Gráfico Q × NA de montante necessário** (canvas): curva azul de 2 a 14 m³/s, linha tracejada vermelha no NA máx., ponto vermelho na vazão de teste com rótulo \"9,5 m³/s → NA 2,23 m\".\n* **Cenário \"linha nova estrangulada\":** capacidade real da linha nova (padrão 8,0 m³/s) e comprimento de canal a montante que remansa (padrão 3 000 m). Calcula o **excesso a armazenar (1,5 m³/s)**, o **volume até verter (≈ 24 500 m³)** — de yn até a soleira da descarga de segurança (NA máx + 0,10 = 2,26 m) — o **tempo até a descarga de segurança (≈ 272 min)** e a **taxa média de subida (≈ 0,3 cm/min)**. Declarado como estimativa grosseira para dimensionar o critério de abortar o teste.\n\n\\---\n\n## 4\\. Aba \"Registro e aceite\"\n\n**Propósito:** formalizar o registro das travessias ADCP e aplicar um critério de aceite completo — condições que a Nota não fixa.\n\n**Painel \"Vazão de controle na saída do Curral Velho\"**\n\n* Entradas: Q alvo na entrada do sifão (9,5), Σ tomadas intermediárias (0,55), Q medida no ponto de controle (10,05).\n* Saídas: **Q de controle necessária = 10,05 m³/s**, desvio medido em % e l/s, Q estimada que chega ao sifão.\n* **Barra de tolerância** com faixa azul ±2 % (≈ 190 l/s), faixa âmbar ±5 %, marcador vermelho na Q medida e ticks −5 % / alvo / +5 %.\n* Texto: a incerteza típica do ADCP em canal revestido é 3–5 %, por isso recomenda-se operar no limite superior (≈ 10,0 m³/s na entrada).\n\n**Painel \"Condições no canal durante o isolamento\"**\n\n* Régua montante (1,62 m), régua jusante (1,49 m), NA máx. (2,16 m), tempo com linha antiga fechada (120 min) e seleção **\"Estanqueidade da linha antiga verificada? Sim/Não\"**.\n\n**Tabela \"Travessias ADCP\"**\n\n* Linhas com #, Seção (Jusante/Montante), Sentido (Ida ME→MD / Volta MD→ME), Duração (s), Q (m³/s) e botão de exclusão.\n* Botões **Adicionar travessia / Preencher exemplo / Limpar**. O exemplo carrega 4 travessias de jusante (9,71; 9,62; 9,58; 9,66 — alternando ida/volta, \\~210 s cada) e 2 de montante (9,80; 9,74).\n* Estatísticas por seção: nº de travessias (ida/volta), duração total, Q média, coeficiente de variação.\n\n**Verificação do aceite** (9 linhas com \"atende / não atende / pendente\"):\n\n1. Q média de jusante ≥ 9,5 m³/s\n2. Mínimo 4 travessias recíprocas a jusante (≥ 2 ida e ≥ 2 volta)\n3. Duração total ≥ 720 s a jusante\n4. Coeficiente de variação ≤ 5 %\n5. Balanço montante − jusante ≤ 5 % (se medido)\n6. NA de montante ≤ NA máx. de operação\n7. ΔH observado (NA mont − NA jus) — informativo, \"comparar com ΔH de projeto (não informado)\"\n8. Linha antiga fechada por ≥ 120 min\n9. Estanqueidade da linha antiga verificada\n\n**Veredito final:** cinza \"Aguardando travessias de jusante\" enquanto não há dados; vermelho \"Não aprovado: N condição(ões) não atendida(s)\"; verde \"Aprovado: a linha nova conduz ≥ 9,5 m³/s isoladamente, com dispersão e nível de montante dentro dos limites\".\n\n\\---\n\n## 5\\. Aba \"Ressalvas à Nota Técnica rev. 00\"\n\nSubtítulo: *Pontos a levar ao ofício de resposta da COGERH/GEOPE. Erros de digitação primeiro, método depois.*\n\n### 5.1 Contextualização da metodologia de vazão proposta na Nota\n\nPelo que a demonstração reconstrói, a Nota do consórcio propõe:\n\n* Comprovar a capacidade da 2ª linha de cada um dos seis sifões DN 2500 conduzindo **≥ 9,5 m³/s** com a linha existente fechada.\n* Vazão de teste ajustada em um **ponto de controle** e verificada por **ADCP** em seções de canal a montante e a jusante do sifão.\n* Dimensionamento hidráulico do canal por Manning (Quadro 2), com NA máximo de operação de 2,16 m, altura da obra 2,80 m e descarga de segurança acionada acima de 2,26 m.\n* Tolerância de ajuste da vazão expressa como **±2 % / ±5 %** (parágrafo truncado).\n* Sequência operacional resumida no **Quadro 4**.\n\n### 5.2 Ressalvas — erros materiais e de redação\n\n|Item|Problema|Correção|\n|-|-|-|\n|**Quadro 1 – altura máxima de água**|\"2,70 − 0,64\" resulta 2,06 m, não 2,16 m.|Corrigir para 2,80 − 0,64 (ou 2,70 − 0,54).|\n|**Seção 2 – estado das tubulações**|Diz simultaneamente que estão \"com água\" e \"aguardando enchimento\".|Definir o estado real; o procedimento de enchimento e purga depende disso.|\n|**Seção 5 – texto truncado**|Parágrafo da tolerância incompleto; regra ±2 % / ±5 % ambígua.|Completar e explicitar a que grandeza cada faixa se aplica.|\n\n### 5.3 Ressalvas — método\n\n|Item|Problema|Correção necessária|\n|-|-|-|\n|**Ponto de controle**|Calibrar a vazão no fim do Trecho 1 não define a vazão do Trecho 2: o Curral Velho é reservatório de passagem.|Controle na **saída do Curral Velho**, com Q = 9,5 + Σ tomadas intermediárias.|\n|**Etapas ausentes no Quadro 4**|Faltam: remoção das ensecadeiras; enchimento lento e purga de ar da linha nova; verificação de estanqueidade da linha antiga fechada (vazamento por stop-log contamina a medição de jusante); reabertura e retorno à operação normal.|Incluir as quatro etapas (as marcadas em âmbar na aba 1).|\n|**Critério de aceite incompleto**|\"Q ≥ 9,5 m³/s\" é necessário, não suficiente: qualquer sifão conduz 9,5 se o canal de montante subir o bastante.|Acrescentar **NA montante ≤ nível operacional** (ou ΔH observado ≤ ΔH de projeto) e **informar L e ΔH de projeto de cada sifão**.|\n|**Tolerância × incerteza**|Exigir ±2 % no ajuste e medir com instrumento de 3–5 % é inconsistente.|Operar em ≈ 10,0 m³/s na entrada para que a comprovação de ≥ 9,5 sobreviva à incerteza.|\n|**Descarga de segurança**|Só opera com NA > 2,26 m. Entre 1,49 e 2,26 m há 0,77 m de remanso sem proteção e sem critério de abortar.|Fixar **NA limite** e **taxa de subida máxima** para abortar o teste.|\n|**Protocolo ADCP**|Não define nº de travessias, critério de descarte nem referência de velocidade.|Mínimo **4 travessias recíprocas, ≥ 720 s no total**; descartar se **CV > 5 %**; definir referência (bottom track em fundo de concreto vs. RTK).|\n|**O que a COGERH precisa saber**|A Nota não informa.|Duração do teste; volume total (10 m³/s por dia ≈ 864 000 m³); destino a jusante; janela de estabilização após ajuste no Curral Velho; compensação das tomadas sifão a sifão.|\n\n### 5.4 Síntese: o que falta para uma metodologia de vazão completa\n\n1. **Dados de projeto por sifão** (L, ΔH admissível) — sem eles o aceite por vazão é indeterminado.\n2. **Critério duplo de aceite**: Q ≥ 9,5 m³/s **e** NA montante ≤ 2,16 m (ou ΔH ≤ projeto).\n3. **Ponto e valor de controle corretos**: saída do Curral Velho, ≈ 10,0 m³/s + tomadas, com janela de estabilização definida.\n4. **Sequência operacional completa** (10 etapas), incluindo enchimento/purga, estanqueidade da linha antiga e retorno à operação.\n5. **Protocolo de medição** (ADCP + réguas): seções ≥ 20 m das caixas, ≥ 4 travessias recíprocas, ≥ 720 s, CV ≤ 5 %, balanço montante/jusante ≤ 5 %, leitura de réguas a cada 15–20 min.\n6. **Critério de segurança/abortar**: NA limite abaixo de 2,26 m e taxa máxima de subida.\n7. **Informações operacionais à COGERH**: duração, volume, destino da água, compensação de tomadas.\n8. **Correções de texto**: Quadro 1, Seção 2, Seção 5.\n\n";
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function inline(s){
-  s=esc(s);
-  s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
-  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
-  s=s.replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>');
-  return s;
-}
-function mdToHtml(md){
-  md=md.replace(/\\([-.~*_#`>|\\])/g,'$1');
-  const lines=md.split(/\r?\n/);let out=[],i=0,para=[];
-  const flush=()=>{if(para.length){out.push('<p>'+para.map(inline).join(' ')+'</p>');para=[];}};
-  while(i<lines.length){
-    const l=lines[i];
-    if(/^\s*$/.test(l)){flush();i++;continue;}
-    if(/^---+\s*$/.test(l)){flush();out.push('<hr>');i++;continue;}
-    const h=l.match(/^(#{1,6})\s+(.*)$/);
-    if(h){flush();out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);i++;continue;}
-    if(/^\|/.test(l)&&i+1<lines.length&&/^\|?\s*:?-+/.test(lines[i+1])){
-      flush();const cells=r=>r.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
-      let t='<table><thead><tr>'+cells(l).map(c=>'<th>'+inline(c)+'</th>').join('')+'</tr></thead><tbody>';
-      i+=2;
-      while(i<lines.length&&/^\|/.test(lines[i])){t+='<tr>'+cells(lines[i]).map(c=>'<td>'+inline(c)+'</td>').join('')+'</tr>';i++;}
-      out.push(t+'</tbody></table>');continue;
-    }
-    const ul=l.match(/^\s*[-*]\s+(.*)$/),ol=l.match(/^\s*\d+[.)]\s+(.*)$/);
-    if(ul||ol){flush();const tag=ul?'ul':'ol';const re=ul?/^\s*[-*]\s+(.*)$/:/^\s*\d+[.)]\s+(.*)$/;let t=`<${tag}>`;
-      while(i<lines.length){const m=lines[i].match(re);if(!m)break;t+='<li>'+inline(m[1])+'</li>';i++;}
-      out.push(t+`</${tag}>`);continue;}
-    para.push(l);i++;
+async function carregar(){
+  setStatus(null,'Carregando…');
+  try{
+    hist = (await api('listar')).sort((a,b)=>a.data.localeCompare(b.data));
+    if(!hist.length) mesclarSeed();
+    setStatus(true, `${hist.length} leituras · ${cfg.url.slice(0,42)}…`);
+    localStorage.setItem('ro_cache', JSON.stringify(hist));
+    atualizarAnterior(); popularVars(); renderKpis(); renderTabela(); plotar(); plotBombas();
+  }catch(e){
+    setStatus(false, e.message);
+    hist = JSON.parse(localStorage.getItem('ro_cache')||'[]');
+    if(hist.length){ atualizarAnterior(); popularVars(); renderKpis(); renderTabela(); }
   }
-  flush();return out.join('\n');
 }
-const dlg=$('helpDlg');let helpRendered=false;
-$('helpBtn').addEventListener('click',()=>{if(!helpRendered){$('helpBody').innerHTML=mdToHtml(HELP_MD);helpRendered=true;}dlg.showModal();});
-$('helpClose').addEventListener('click',()=>dlg.close());
-dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close();});
-$('helpPrint').addEventListener('click',()=>{const w=window.open('','_blank');w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Help – Teste de vazão Lote 4</title><style>body{font:13px/1.5 Segoe UI,system-ui,sans-serif;max-width:900px;margin:24px auto;color:#17232E}table{border-collapse:collapse;width:100%;margin:8px 0 14px}th,td{border:1px solid #C9D3DC;padding:5px 7px;vertical-align:top;text-align:left}th{background:#F3F6F9}h2{border-top:1px solid #C9D3DC;padding-top:8px}</style></head><body>'+$('helpBody').innerHTML+'</body></html>');w.document.close();w.focus();w.print();});
 
-calcB();calcC();stepRender();renderRows();
-})();
+/* ===================== Formulário ===================== */
+function montarBombas(){
+  const g = $('#bombas');
+  for(let i=1;i<=NB;i++){
+    const id = 'MB-'+String(i).padStart(2,'0');
+    g.insertAdjacentHTML('beforeend',
+      `<b>${id}</b><input id="h_${i}" type="text" inputmode="numeric" placeholder="0:00" pattern="^\\d{1,2}:\\d{2}(:\\d{2})?$"><input id="rpm_${i}" type="number" step="1" placeholder="rpm">`);
+  }
+}
+function atualizarAnterior(){
+  const d = $('#data').value;
+  anterior = [...hist].reverse().find(r => r.data < d) || null;
+  $('#anterior').innerHTML = anterior
+    ? `Leitura anterior: <b>${anterior.data.split('-').reverse().join('/')}</b> — cota ${fmt(anterior.cota)} m · M1 ${fmt(anterior.med1,0)} · M2 ${fmt(anterior.med2,0)} · Tubulação ${fmt(anterior.tot_acum,0)} m³`
+    : 'Sem leitura anterior carregada — os campos calculados ficam em branco até a próxima leitura.';
+}
+function recalcular(force=false){
+  const g = id => num($('#'+id).value), s = (id,v,d) => { if(v!=null && (force || $('#'+id).value==='')) $('#'+id).value = (+v).toFixed(d); };
+  const cota=g('cota'), vol=g('vol_acum'), m1=g('med1'), m2=g('med2'), tot=g('tot_acum');
+  if(vol!=null) s('pct', vol/CAPACIDADE_M3*100, 2);
+  if(anterior){
+    if(cota!=null && anterior.cota!=null){
+      const dc = cota - anterior.cota;
+      s('variacao', Math.round(dc*100), 0);
+      s('var_acum', (anterior.var_acum||0) + dc, 2);
+    }
+    if(m1!=null && m2!=null && anterior.med1!=null && anterior.med2!=null){
+      const v = (m1-anterior.med1)+(m2-anterior.med2);
+      s('vol_24h', v, 0); s('q_trecho1', v/86400, 3);
+    }
+    if(tot!=null && anterior.tot_acum!=null) s('q_total', (tot-anterior.tot_acum)/86400, 3);
+  }
+  const tt=g('tot_acum_tarde'), h1=$('#hora_tot').value, h2=$('#hora_tot_tarde').value;
+  if(tt!=null && tot!=null && h1 && h2){ const dt=(hmsToH(h2)-hmsToH(h1))*3600; if(dt>0) s('q_total_tarde', (tt-tot)/dt, 3); }
+}
+function lerForm(){
+  const r = {}; CAMPOS.forEach(k => { const v = $('#'+k).value; r[k] = ['data','hora','hora_rec','hora_tot','hora_tot_tarde','q_jaguaribe_tipo','obs'].includes(k) ? v : num(v); });
+  r.bombas = []; let ht = 0;
+  for(let i=1;i<=NB;i++){ const h = $('#h_'+i).value || '0:00'; ht += hmsToH(h); r.bombas.push({mb:'MB-'+String(i).padStart(2,'0'), horas:h, rpm:num($('#rpm_'+i).value)||0}); }
+  r.horas_total = +ht.toFixed(2);
+  return r;
+}
+function preencherForm(r){
+  CAMPOS.forEach(k => $('#'+k).value = r[k] ?? '');
+  (r.bombas||[]).forEach((b,i) => { $('#h_'+(i+1)).value = b.horas||''; $('#rpm_'+(i+1)).value = b.rpm ?? ''; });
+  atualizarAnterior();
+}
+function limpar(){ $('#f').reset(); $('#data').value = hoje(); $('#hora').value = new Date().toTimeString().slice(0,5); atualizarAnterior(); $('#msg').textContent=''; }
+
+$('#f').addEventListener('submit', async e => {
+  e.preventDefault(); recalcular();
+  const r = lerForm(); const b = $('#btnSalvar'); b.disabled = true; flash($('#msg'),'Salvando…');
+  try{ await api('salvar', {leitura:r}); flash($('#msg'), `Leitura de ${r.data.split('-').reverse().join('/')} salva.`); await carregar(); }
+  catch(err){ flash($('#msg'), err.message, false); }
+  b.disabled = false;
+});
+$('#btnLimpar').onclick = limpar;
+$('#btnRecalc').onclick = () => recalcular(true);
+$('#data').addEventListener('change', () => { atualizarAnterior(); recalcular(true); });
+['cota','vol_acum','med1','med2','tot_acum','tot_acum_tarde','hora_tot','hora_tot_tarde'].forEach(id => $('#'+id).addEventListener('input', () => recalcular(true)));
+
+/* ===================== Dashboard ===================== */
+function popularVars(){
+  const sel = $('#vars'); if(sel.options.length) return;
+  Object.entries(VARS).forEach(([k,[l,u]]) => sel.add(new Option(`${l} (${u})`, k)));
+  sel.options[0].selected = true; [...sel.options].find(o=>o.value==='q_trecho1').selected = true;
+}
+function filtrar(){
+  const n = +$('#periodo').value; if(!n) return hist;
+  const lim = new Date(); lim.setDate(lim.getDate()-n); const s = lim.toLocaleDateString('sv-SE');
+  return hist.filter(r => r.data >= s);
+}
+function renderKpis(){
+  const u = hist[hist.length-1]; if(!u){ $('#kpis').innerHTML=''; return; }
+  const k = [['Última leitura', u.data.split('-').reverse().join('/'), ''],
+    ['Cota Castanhão', fmt(u.cota)+' m', ''], ['Volume', fmt(u.pct)+' %','k2'],
+    ['Vazão média Trecho I', fmt(u.q_trecho1,3)+' m³/s','k3'], ['Bombeado 24h', fmt(u.vol_24h,0)+' m³','k3'],
+    ['Variação diária', (u.variacao>0?'+':'')+fmt(u.variacao,0)+' cm','k2']];
+  $('#kpis').innerHTML = k.map(([a,b,c]) => `<div class="kpi ${c}"><span>${a}</span><strong>${b}</strong></div>`).join('');
+}
+function plotar(){
+  const sel = [...$('#vars').selectedOptions].map(o=>o.value); if(!sel.length) return;
+  const d = filtrar(), labels = d.map(r => r.data.slice(5).split('-').reverse().join('/'));
+  const dois = $('#eixo').value==='2' && sel.length>1;
+  const datasets = sel.map((k,i) => ({ label:`${VARS[k][0]} (${VARS[k][1]})`, data:d.map(r=>r[k]), borderColor:VARS[k][2], backgroundColor:VARS[k][2]+'99',
+    yAxisID: dois && i===1 ? 'y2' : 'y', tension:.25, pointRadius:d.length>60?0:3, spanGaps:true }));
+  const scales = { y:{ position:'left', title:{display:true,text:VARS[sel[0]][1]} } };
+  if(dois) scales.y2 = { position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:VARS[sel[1]][1]} };
+  ch1?.destroy();
+  ch1 = new Chart($('#ch1'), { type:$('#tipo').value, data:{labels,datasets}, options:{responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'bottom'}}, scales} });
+}
+function plotBombas(){
+  const d = filtrar(); const cores = ['#0E5FA6','#2E9E4F','#F39C12','#8E44AD','#16A085','#E67E22','#C0392B','#2C3E50'];
+  ch2?.destroy();
+  if($('#modoB').value==='dia'){
+    const labels = d.map(r => r.data.slice(5).split('-').reverse().join('/'));
+    const datasets = Array.from({length:NB},(_,i)=>({ label:'MB-'+String(i+1).padStart(2,'0'), backgroundColor:cores[i], data:d.map(r => +hmsToH(r.bombas?.[i]?.horas).toFixed(2)) }));
+    ch2 = new Chart($('#ch2'), { type:'bar', data:{labels,datasets}, options:{responsive:true, scales:{x:{stacked:true}, y:{stacked:true, title:{display:true,text:'horas/dia'}}}, plugins:{legend:{position:'bottom'}}} });
+  }else{
+    const tot = Array.from({length:NB},(_,i)=> d.reduce((s,r)=> s + hmsToH(r.bombas?.[i]?.horas), 0));
+    ch2 = new Chart($('#ch2'), { type:'bar', data:{labels:tot.map((_,i)=>'MB-'+String(i+1).padStart(2,'0')), datasets:[{label:'Horas no período', data:tot.map(v=>+v.toFixed(1)), backgroundColor:cores}]},
+      options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{title:{display:true,text:'horas'}}}} });
+  }
+}
+$('#btnPlot').onclick = () => { plotar(); plotBombas(); };
+$('#modoB').onchange = plotBombas; $('#periodo').onchange = () => { plotar(); plotBombas(); };
+
+/* ===================== Histórico ===================== */
+const COLS = [['data','Data'],['hora','Hora'],['cota','Cota (m)'],['pct','%'],['variacao','Var. (cm)'],['var_acum','Var. ac. (m)'],['vol_acum','Vol. Castanhão (m³)'],
+  ['q_jaguaribe','Q Jaguaribe'],['q_jaguaribe_tipo','Origem'],['q_mandacaru','Q Mandacaru (L/s)'],['med1','Medidor 1'],['med2','Medidor 2'],['vol_24h','Bombeado 24h'],['q_trecho1','Q Trecho I'],
+  ['q_inst','Q inst.'],['n_bombas','Bombas'],['tot_acum','Tubulação acum.'],['q_total','Q total'],['tot_acum_tarde','Tub. acum. tarde'],['q_total_tarde','Q total tarde'],['horas_total','Horas MB'],['obs','Obs.']];
+function renderTabela(){
+  $('#tbl thead').innerHTML = '<tr>' + COLS.map(c=>`<th>${c[1]}</th>`).join('') + '</tr>';
+  $('#tbl tbody').innerHTML = [...hist].reverse().map(r => `<tr class="link" data-d="${r.data}">` + COLS.map(([k]) => {
+    const v = r[k]; const d = ['cota','var_acum','pct'].includes(k)?2 : ['q_jaguaribe','q_trecho1','q_inst','q_total','q_total_tarde'].includes(k)?3 : 0;
+    return `<td>${k==='data' ? v.split('-').reverse().join('/') : typeof v==='number' ? fmt(v,d) : (v ?? '')}</td>`; }).join('') + '</tr>').join('');
+  $('#tbl tbody').querySelectorAll('tr').forEach(tr => tr.onclick = () => { preencherForm(hist.find(r=>r.data===tr.dataset.d)); irPara('form'); flash($('#msg'),'Leitura carregada — edite e salve para substituir.'); });
+}
+$('#btnReload').onclick = carregar;
+$('#btnSeed').onclick = async () => {
+  if(!cfg?.url){ flash($('#msgHist'),'Configure a conexão primeiro (botão Configurar).',false); return; }
+  const faltam = SEED.filter(s => !hist.some(r => r.data===s.data));
+  if(!faltam.length){ flash($('#msgHist'),'As 31 leituras já estão na planilha.'); return; }
+  if(!confirm(`Enviar ${faltam.length} leitura(s) para a planilha?`)) return;
+  const b = $('#btnSeed'); b.disabled = true;
+  try{ for(const l of faltam){ flash($('#msgHist'),`Enviando ${l.data}…`); await api('salvar',{leitura:l}); } flash($('#msgHist'),`${faltam.length} leitura(s) enviadas.`); await carregar(); }
+  catch(e){ flash($('#msgHist'), e.message, false); }
+  b.disabled = false;
+};
+$('#btnCsv').onclick = () => {
+  const cab = [...COLS.map(c=>c[0]), ...Array.from({length:NB},(_,i)=>`MB${i+1}_h`), ...Array.from({length:NB},(_,i)=>`MB${i+1}_rpm`)];
+  const lin = hist.map(r => [...COLS.map(([k]) => r[k] ?? ''), ...(r.bombas||[]).map(b=>b.horas), ...(r.bombas||[]).map(b=>b.rpm)].join(';'));
+  const blob = new Blob(['\uFEFF'+[cab.join(';'),...lin].join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'resumo_operacional.csv'; a.click();
+};
+
+/* ===================== Navegação e config ===================== */
+function irPara(p){ document.querySelectorAll('nav [role=tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.p===p)); document.querySelectorAll('.pane').forEach(s => s.classList.toggle('on', s.id==='p-'+p)); if(p==='dash'){ plotar(); plotBombas(); } }
+document.querySelectorAll('nav [role=tab]').forEach(b => b.onclick = () => irPara(b.dataset.p));
+$('#btnCfg').onclick = () => { $('#cfgUrl').value = cfg?.url||''; $('#cfgSenha').value = cfg?.senha||''; $('#modal').classList.add('on'); $('#cfgUrl').focus(); };
+$('#cfgCancel').onclick = () => $('#modal').classList.remove('on');
+$('#cfgOk').onclick = async () => {
+  cfg = {url:$('#cfgUrl').value.trim(), senha:$('#cfgSenha').value};
+  ($('#cfgLembrar').checked ? localStorage : sessionStorage).setItem('ro_cfg', JSON.stringify(cfg));
+  $('#modal').classList.remove('on'); await carregar();
+};
+
+/* ===================== Início ===================== */
+montarBombas(); limpar();
+function mesclarSeed(){ SEED.forEach(s => { if(!hist.some(r=>r.data===s.data)) hist.push(s); }); hist.sort((a,b)=>a.data.localeCompare(b.data)); }
+if(cfg?.url) carregar(); else { hist = JSON.parse(localStorage.getItem('ro_cache')||'[]'); mesclarSeed(); atualizarAnterior(); popularVars(); renderKpis(); renderTabela(); setStatus(null,'Modo local — agosto/2026 carregado (31 leituras)'); }
 </script>
 </body>
 </html>
